@@ -18,7 +18,7 @@ function getOMDatabase() {
 let commands = {
 	om: function (target, room, user) {
 		if (!(room instanceof Rooms.Room)) return;
-		if (!target) return this.say("Correct syntax: ``@om [Other Metagame]`` or ``@om add [Other Metagame :: description :: link]`` or ``@om remove [Other Metagame]``");
+		if (!target) return this.say("Correct syntax: ``@om [Other Metagame]`` or ``@om add | [Other Metagame :: description :: link]`` or ``@om remove | [Other Metagame]``");
 		let targets = target.split('|');
 		let database = getOMDatabase();
 		let oms = database.oms;
