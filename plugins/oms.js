@@ -8,10 +8,18 @@
 function getOMDatabase() {
 	// In case a Room object was passed:
 	let database = Storage.getDatabase('oms');
-	if (!database.oms) database.oms = [];
-	if (!database.omlinks) database.omlinks = {};
-	if (!database.omdescs) database.omdescs = {};
+	if (!database.oms) database.oms = Object.create(null);
 	return database;
+}
+
+/**
+ * @param {User} user
+ * @param {Room | string} room
+ * @param {string} rank
+ * @return {boolean}
+*/
+function canPerform(user, room, rank) {
+	return user.hasRank(room, rank) || user.isDeveloper();
 }
 
 /**@type {{[k: string]: Command | string}} */
@@ -22,40 +30,33 @@ let commands = {
 		let targets = target.split('|');
 		let database = getOMDatabase();
 		let oms = database.oms;
-		let index;
 		if (['add', 'new', 'create'].includes(Tools.toId(targets[0]))) {
-			if (!user.hasRank(room, '%')) return this.pm(user, "You don't have permission to do that.");
+			if (!canPerform(user, room, '%')) return this.pm(user, "You don't have permission to do that.");
 			let subtarget = targets[1].split('::');
 			if (!subtarget[0]) return this.say("Please provide a valid OM name.");
 			if (!subtarget[1]) return this.say("Please provide a valid OM description.");
 			if (!subtarget[2]) return this.say("Please provide a valid OM link.");
-			index = oms.findIndex(/**@param {string} om */ om => Tools.toId(om) === Tools.toId(subtarget[0]));
-			if (index >= 0) return this.say("That OM is already listed.");
-			oms.push(subtarget[0].trim());
-			database.omdescs[Tools.toId(subtarget[0])] = subtarget[1].trim();
-			database.omlinks[Tools.toId(subtarget[0])] = subtarget[2].trim();
+			if (Tools.toId(subtarget[0]) in oms) return this.say("That OM is already listed.");
+			oms[Tools.toId(subtarget[0])].desc = subtarget[1].trim();
+			oms[Tools.toId(subtarget[0])].link = subtarget[2].trim();
 			Storage.exportDatabase('oms');
 			return this.say("OM " + subtarget[0] + " successfully added.");
 		} else if (['del', 'delete', 'remove'].includes(Tools.toId(targets[0]))) {
-			if (!user.hasRank(room, '%')) return this.pm(user, "You don't have permission to do that.");
-			index = oms.findIndex(/**@param {string} om */ om => Tools.toId(om) === Tools.toId(targets[1]));
-			if (index < 0) return this.say("That OM does not exist.");
-			oms.splice(index, 1);
-			delete database.omlinks[Tools.toId(targets[1])];
-			delete database.omdescs[Tools.toId(targets[1])];
+			if (!canPerform(user, room, '%')) return this.pm(user, "You don't have permission to do that.");
+			if (!(Tools.toId(targets[1]) in oms)) return this.say("That OM doesn't exist.");
+			delete oms[Tools.toId(targets[1])];
 			Storage.exportDatabase('oms');
 			return this.say("OM " + targets[1] + " successfully removed.");
 		} else {
 			let text;
-			if (!oms.length) text = "There are currently no OMs.";
-			index = oms.findIndex(/**@param {string} om */ om => Tools.toId(om) === Tools.toId(targets[0]));
-			if (index < 0) {
+			if (!oms) text = "There are currently no OMs.";
+			if (!(Tools.toId(targets[0]) in oms)) {
 				text = "That OM does not exist.";
-				if (!user.hasRank(room, '+')) return this.pm(user, text);
+				if (!canPerform(user, room, '+')) return this.pm(user, text);
 				return this.say(text);
 			}
-			text = "" + database.omdescs[Tools.toId(target)] + " -- " + database.omlinks[Tools.toId(target)];
-			if (!user.hasRank(room, '+')) return this.pm(user, text);
+			text = "" + oms[Tools.toId(target)].desc + " - " + oms[Tools.toId(target)].link;
+			if (!canPerform(user, room, '+')) return this.pm(user, text);
 			return this.say(text);
 		}
 	},
@@ -63,7 +64,7 @@ let commands = {
 	scalemons: function (target, room, user) {
 		if (!(room instanceof Rooms.Room)) return;
 		if (!target) return this.say("Correct syntax: ``@scalemons pokemon`` - Shows a Pokemon's scaled stats.");
-		if (!(Tools.toId(target) in Tools.data.pokedex)) return this.say("Pokemon '" + target + "' not found.");
+		if (!(Tools.toId(target) in Tools.data.pokedex) || Tools.toId(target) === 'constructor') return this.say("Pokemon '" + target + "' not found.");
 		let template = Object.assign({}, Tools.getPokemon(target));
 		template.baseStats = Object.assign({}, template.baseStats);
 		let stats = ['atk', 'def', 'spa', 'spd', 'spe'];
@@ -100,7 +101,7 @@ let commands = {
 			spe = 1;
 		}
 		let text = "Scaled stats for " + template.species + ": " + template.baseStats['hp'] + " / " + atk + " / " + def + " / " + spa + " / " + spd + " / " + spe;
-		if (!user.hasRank(room, '+')) return this.pm(user, text);
+		if (!canPerform(user, room, '+')) return this.pm(user, text);
 		this.say(text);
 	},
 };
