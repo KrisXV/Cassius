@@ -52,6 +52,15 @@ class User {
 	}
 
 	/**
+	 * @param {Room | string} room
+	 * @param {string} targetRank
+	 * @return {boolean}
+	*/
+	canPerform(room, targetRank = '#') {
+		return this.hasRank(room, targetRank) || this.isDeveloper();
+	}
+
+	/**
 	 * @param {string} message
 	 */
 	say(message) {

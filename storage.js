@@ -27,6 +27,7 @@ class Storage {
 		if (!(roomid in this.databases)) this.databases[roomid] = {};
 		// sync database properties
 		if (roomid === 'global' && !this.databases[roomid].mail) this.databases[roomid].mail = {};
+		if (roomid === 'global' && !this.databases[roomid].blacklist) this.databases[roomid].blacklist = [];
 		return this.databases[roomid];
 	}
 
@@ -38,7 +39,7 @@ class Storage {
 		try {
 			file = fs.readFileSync('./databases/' + roomid + '.json').toString();
 		} catch (e) {}
-		this.databases[roomid] = JSON.parse(file);
+		this.databases[roomid] = Object.assign(Object.create(null), JSON.parse(file));
 	}
 
 	/**

@@ -29,6 +29,46 @@ let commands = {
 		}
 	},
 
+	blacklist: function (target, room, user) {
+		if (room instanceof Users.User || !user.canPerform(room)) return;
+		let database = Storage.getDatabase('global');
+		target = target.trim();
+		if (!target) return this.say("Correct syntax: ``@blacklist username``");
+		let bl = database.blacklist;
+		let index = bl.findIndex(/**@param {string} bl */ bl => Tools.toId(bl) === Tools.toId(target));
+		if (index >= 0) return this.say("That user is already banned from using commands.");
+		bl.push(target);
+		Storage.exportDatabase('global');
+		this.say("" + target + " was successfully banned from using commands.");
+	},
+	unblacklist: function (target, room, user) {
+		if (room instanceof Users.User || !user.canPerform(room)) return;
+		let database = Storage.getDatabase('global');
+		target = target.trim();
+		if (!target) return this.say("Correct syntax: ``@blacklist username``");
+		let bl = database.blacklist;
+		let index = bl.findIndex(/**@param {string} bl */ bl => Tools.toId(bl) === Tools.toId(target));
+		if (index < 0) return this.say("That user is already unbanned from using commands.");
+		bl.splice(index, 1);
+		Storage.exportDatabase('global');
+		this.say("" + target + " was successfully unbanned from using commands.");
+	},
+	blacklisted: function (target, room, user) {
+		if (room instanceof Users.User || !user.canPerform(room)) return;
+		let bl = Storage.getDatabase('global').blacklist;
+		if (!bl.length) return this.pm(user, "This bot doesn't have any blacklisted users.");
+		let blacklist = "Blacklist for " + room.id + ":\n\n" + bl.map(
+			/**
+			 * @param {string} blist
+			 * @param {number} index
+			 */
+			(blist, index) => (index + 1) + ": " + blist
+		).join("\n");
+		Tools.uploadToHastebin(blacklist, /**@param {string} hastebinUrl */ hastebinUrl => {
+			this.pm(user, "Blacklisted users: " + hastebinUrl);
+		});
+	},
+
 	// General commands
 	about: function (target, room, user) {
 		if (!(room instanceof Users.User) && !user.hasRank(room, '+')) return;

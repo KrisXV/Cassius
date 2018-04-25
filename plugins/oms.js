@@ -7,64 +7,99 @@
  */
 function getOMDatabase() {
 	// In case a Room object was passed:
-	let database = Storage.getDatabase('oms');
-	if (!database.oms) database.oms = Object.create(null);
+	let database = Storage.databases['oms'];
+	if (!database.oms) database.oms = {};
 	return database;
-}
-
-/**
- * @param {User} user
- * @param {Room | string} room
- * @param {string} rank
- * @return {boolean}
-*/
-function canPerform(user, room, rank) {
-	return user.hasRank(room, rank) || user.isDeveloper();
 }
 
 /**@type {{[k: string]: Command | string}} */
 let commands = {
 	om: function (target, room, user) {
-		if (!(room instanceof Rooms.Room)) return;
-		if (!target) return this.say("Correct syntax: ``@om [Other Metagame]`` or ``@om add | [Other Metagame :: description :: link]`` or ``@om remove | [Other Metagame]``");
-		let targets = target.split('|');
+		if (!target) return this.say("Correct syntax: ``@om [Other Metagame]`` or ``@om add [Other Metagame (no spaces)], [link], [desc]`` or ``@om remove [Other Metagame]``");
+		let targets = target.split(' ');
 		let database = getOMDatabase();
-		let oms = database.oms;
-		if (['add', 'new', 'create'].includes(Tools.toId(targets[0]))) {
-			if (!canPerform(user, room, '%')) return this.pm(user, "You don't have permission to do that.");
-			let subtarget = targets[1].split('::');
-			if (!subtarget[0]) return this.say("Please provide a valid OM name.");
-			if (!subtarget[1]) return this.say("Please provide a valid OM description.");
-			if (!subtarget[2]) return this.say("Please provide a valid OM link.");
-			if (Tools.toId(subtarget[0]) in oms) return this.say("That OM is already listed.");
-			oms[Tools.toId(subtarget[0])].desc = subtarget[1].trim();
-			oms[Tools.toId(subtarget[0])].link = subtarget[2].trim();
+		switch (Tools.toId(targets[0])) {
+		case 'add':
+		case 'new':
+		case 'create': {
+			// @ts-ignore
+			if (!user.canPerform(room, '%')) return this.pm(user, "You don't have permission to do that.");
+			let subtargets = targets.slice(1).join(' ').trim();
+			let subtarget = subtargets.split(',');
+			if (!subtarget[0] || ['/', '!'].includes(subtarget[0].trim()[0])) return this.say("Please provide a valid OM name.");
+			if (!subtarget[1] || !subtarget[1].trim().startsWith('http') || ['/', '!'].includes(subtarget[1].trim()[0])) return this.say("Please provide a valid OM link.");
+			if (!subtarget[2] || ['/', '!'].includes(subtarget[2].trim()[0])) return this.say("Please provide a valid OM description.");
+			if (Tools.toId(subtarget[0]) in database) return this.say("That OM is already listed.");
+			database[Tools.toId(subtarget[0])] = {};
+			database[Tools.toId(subtarget[0])].link = subtarget[1].trim();
+			database[Tools.toId(subtarget[0])].desc = subtarget.slice(2).join(',').trim();
 			Storage.exportDatabase('oms');
 			return this.say("OM " + subtarget[0] + " successfully added.");
-		} else if (['del', 'delete', 'remove'].includes(Tools.toId(targets[0]))) {
-			if (!canPerform(user, room, '%')) return this.pm(user, "You don't have permission to do that.");
-			if (!(Tools.toId(targets[1]) in oms)) return this.say("That OM doesn't exist.");
-			delete oms[Tools.toId(targets[1])];
+		}
+
+		case 'del':
+		case 'delete':
+		case 'remove': {
+			// @ts-ignore
+			if (!user.canPerform(room, '%')) return this.pm(user, "You don't have permission to do that.");
+			if (!(Tools.toId(targets.slice(1).join(' ').trim()) in database)) return this.say("That OM doesn't exist.");
+			delete database[Tools.toId(targets.slice(1).join(' ').trim())];
 			Storage.exportDatabase('oms');
-			return this.say("OM " + targets[1] + " successfully removed.");
-		} else {
+			return this.say("OM " + targets.slice(1).join(' ').trim() + " successfully removed.");
+		}
+
+		default: {
 			let text;
-			if (!oms) text = "There are currently no OMs.";
-			if (!(Tools.toId(targets[0]) in oms)) {
+			if (!database) text = "There are currently no OMs.";
+			if (!(Tools.toId(targets[0]) in database)) {
 				text = "That OM does not exist.";
-				if (!canPerform(user, room, '+')) return this.pm(user, text);
+				// @ts-ignore
+				if (!user.canPerform(room, '+')) return this.pm(user, text);
 				return this.say(text);
 			}
-			text = "" + oms[Tools.toId(target)].desc + " - " + oms[Tools.toId(target)].link;
-			if (!canPerform(user, room, '+')) return this.pm(user, text);
+			if (targets.length > 1) {
+				let subtargets = targets.slice(1).join(' ').trim();
+				let subtarget = subtargets.split(',');
+				let validActions = ['desc', 'link', 'name'];
+				// @ts-ignore
+				if (!user.canPerform(room, '@')) return this.pm(user, "You don't have permission to do that");
+				if (!validActions.includes(subtarget[0])) text = "Please provide a valid action: " + validActions.join(', ');
+				if (subtarget[0] === 'desc' || subtarget[0] === 'changedesc') {
+					if (!subtarget[1] || ['/', '!'].includes(subtarget[1].trim()[0])) return this.say("Please provide a valid OM description.");
+					database[Tools.toId(targets[0])].desc = subtarget.slice(1).join(',').trim();
+					Storage.exportDatabase('oms');
+					text = "The description of '" + targets[0] + "' has been changed to: " + subtarget.slice(1).join(',').trim();
+					return this.say(text);
+				}
+				if (subtarget[0] === 'link' || subtarget[0] === 'changelink') {
+					if (!subtarget[1] || !subtarget[1].trim().startsWith('http') || ['/', '!'].includes(subtarget[1].trim()[0])) return this.say("Please provide a valid OM link.");
+					database[Tools.toId(targets[0])].link = subtarget[1].trim();
+					Storage.exportDatabase('oms');
+					text = "The link of '" + targets[0] + "' has been changed to: " + subtarget[1];
+					return this.say(text);
+				}
+				if (subtarget[0] === 'name' || subtarget[0] === 'changename') {
+					if (!subtarget[1] || ['/', '!'].includes(subtarget[1].trim()[0])) return this.say("Please provide a valid OM name.");
+					database[Tools.toId(subtarget[1])] = Object.create(null);
+					database[Tools.toId(subtarget[1])].link = database[Tools.toId(targets[0])].link;
+					database[Tools.toId(subtarget[1])].desc = database[Tools.toId(targets[0])].desc;
+					delete database[Tools.toId(targets[0])];
+					Storage.exportDatabase('oms');
+					text = "The name of '" + targets[0] + "' has been changed to: " + subtarget[1];
+					return this.say(text);
+				}
+			}
+			text = "" + database[Tools.toId(target)].desc + " - " + database[Tools.toId(target)].link;
+			// @ts-ignore
+			if (!user.canPerform(room, '+')) return this.pm(user, text);
 			return this.say(text);
+		}
 		}
 	},
 	scale: 'scalemons',
 	scalemons: function (target, room, user) {
-		if (!(room instanceof Rooms.Room)) return;
 		if (!target) return this.say("Correct syntax: ``@scalemons pokemon`` - Shows a Pokemon's scaled stats.");
-		if (!(Tools.toId(target) in Tools.data.pokedex) || Tools.toId(target) === 'constructor') return this.say("Pokemon '" + target + "' not found.");
+		if (!(Tools.toId(target) in Tools.data.pokedex)) return this.say("Pokemon '" + target + "' not found.");
 		let template = Object.assign({}, Tools.getPokemon(target));
 		template.baseStats = Object.assign({}, template.baseStats);
 		let stats = ['atk', 'def', 'spa', 'spd', 'spe'];
@@ -101,7 +136,8 @@ let commands = {
 			spe = 1;
 		}
 		let text = "Scaled stats for " + template.species + ": " + template.baseStats['hp'] + " / " + atk + " / " + def + " / " + spa + " / " + spd + " / " + spe;
-		if (!canPerform(user, room, '+')) return this.pm(user, text);
+		// @ts-ignore
+		if (!user.canPerform(room, '+')) return this.pm(user, text);
 		this.say(text);
 	},
 };
