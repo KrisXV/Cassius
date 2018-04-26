@@ -338,10 +338,9 @@ class MessageParser {
 
 	/**
 	 * @param {User} user
-	 * @param {Room | User} room
 	 * @return {boolean}
 	 */
-	isChatBlacklisted(user, room) {
+	isChatBlacklisted(user) {
 		return Storage.getDatabase('global').blacklist && Storage.getDatabase('global').blacklist.includes(user.id);
 	}
 
@@ -354,7 +353,7 @@ class MessageParser {
 	parseCommand(message, room, user, time) {
 		message = message.trim();
 		if (message.charAt(0) !== Config.commandCharacter) return;
-		if (this.isChatBlacklisted(user, room)) return;
+		if (this.isChatBlacklisted(user)) return;
 
 		message = message.substr(1);
 		let spaceIndex = message.indexOf(' ');

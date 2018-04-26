@@ -99,9 +99,12 @@ let commands = {
 	scale: 'scalemons',
 	scalemons: function (target, room, user) {
 		if (!target) return this.say("Correct syntax: ``@scalemons pokemon`` - Shows a Pokemon's scaled stats.");
-		if (!(Tools.toId(target) in Tools.data.pokedex)) return this.say("Pokemon '" + target + "' not found.");
-		let template = Object.assign({}, Tools.getPokemon(target));
-		template.baseStats = Object.assign({}, template.baseStats);
+		let template = Object.assign(Object.create(null), Tools.getPokemon(target));
+		if (!(Tools.toId(target) in Tools.data.pokedex)) {
+			if (!(Tools.toId(target) in Tools.data.aliases)) return this.say("Pokemon '" + target + "' not found.");
+			template = Object.assign(Object.create(null), Tools.getPokemon(Tools.data.aliases[Tools.toId(target)]));
+		}
+		template.baseStats = Object.assign(Object.create(null), template.baseStats);
 		let stats = ['atk', 'def', 'spa', 'spd', 'spe'];
 		let pst = stats.map(stat => template.baseStats[stat]).reduce((x, y) => x + y);
 		let scale = 600 - template.baseStats['hp'];

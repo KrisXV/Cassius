@@ -37,7 +37,7 @@ let commands = {
 		let bl = database.blacklist;
 		let index = bl.findIndex(/**@param {string} bl */ bl => Tools.toId(bl) === Tools.toId(target));
 		if (index >= 0) return this.say("That user is already banned from using commands.");
-		bl.push(target);
+		bl.push(Tools.toId(target));
 		Storage.exportDatabase('global');
 		this.say("" + target + " was successfully banned from using commands.");
 	},
@@ -62,7 +62,7 @@ let commands = {
 			 * @param {string} blist
 			 * @param {number} index
 			 */
-			(blist, index) => (index + 1) + ": " + blist
+			(blist, index) => (index + 1) + ": " + Tools.toId(blist)
 		).join("\n");
 		Tools.uploadToHastebin(blacklist, /**@param {string} hastebinUrl */ hastebinUrl => {
 			this.pm(user, "Blacklisted users: " + hastebinUrl);
