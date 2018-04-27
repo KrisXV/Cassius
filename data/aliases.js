@@ -1,15 +1,14 @@
 'use strict';
 
-exports.BattleAliases = {
+/**@type {{[k: string]: string}} */
+let BattleAliases = {
 	// formats
 	"randbats": "[Gen 7] Random Battle",
 	"uber": "[Gen 7] Ubers",
 	"ag": "[Gen 7] Anything Goes",
-	"randomdoublesbattle": "[Gen 7] Random Doubles Battle",
 	"randdubs": "[Gen 7] Random Doubles Battle",
 	"doubles": "[Gen 7] Doubles OU",
 	"dou": "[Gen 7] Doubles OU",
-	"vgc2017": "[Gen 7] VGC 2017",
 	"vgc17": "[Gen 7] VGC 2017",
 	"vgc": "[Gen 7] VGC 2017",
 	"bss": "[Gen 7] Battle Spot Singles",
@@ -17,22 +16,13 @@ exports.BattleAliases = {
 	"bsdoubles": "[Gen 7] Battle Spot Doubles",
 	"bstriples": "[Gen 6] Battle Spot Triples",
 	"bssf": "[Gen 7] BSS Factory",
-	"balancedhackmons": "[Gen 7] Balanced Hackmons",
 	"bh": "[Gen 7] Balanced Hackmons",
-	"1v1": "[Gen 7] 1v1",
-	"monotype": "[Gen 7] Monotype",
-	"mixandmega": "[Gen 7] Mix and Mega",
 	"mnm": "[Gen 7] Mix and Mega",
 	"aaa": "[Gen 7] Almost Any Ability",
-	"almostanyability": "[Gen 7] Almost Any Ability",
 	"2v2": "[Gen 7] 2v2 Doubles",
-	"challengecup1v1": "[Gen 7] Challenge Cup 1v1",
-	"challengecup2v2": "[Gen 7] Challenge Cup 2v2",
 	"cc1v1": "[Gen 7] Challenge Cup 1v1",
 	"cc2v2": "[Gen 7] Challenge Cup 2v2",
-	"hackmonscup": "[Gen 7] Hackmons Cup",
 	"hc": "[Gen 7] Hackmons Cup",
-	"monotyperandombattle": "[Gen 7] Monotype Random Battle",
 	"monorandom": "[Gen 7] Monotype Random Battle",
 	"bf": "[Gen 7] Battle Factory",
 	"gen6bf": "[Gen 6] Battle Factory",
@@ -852,3 +842,5 @@ exports.BattleAliases = {
 	// there's no need to type out the other Japanese names
 	// I'll autogenerate them at some point
 };
+
+exports.BattleAliases = BattleAliases;

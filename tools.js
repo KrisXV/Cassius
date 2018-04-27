@@ -11,6 +11,7 @@
 
 const https = require('https');
 const url = require('url');
+const fs = require('fs');
 const Data = require('./tools-data');
 
 const whitespaceRegex = new RegExp('\\s+', 'g');
@@ -73,6 +74,7 @@ class Tools {
 		};
 		this.gen = 7;
 		this.dataFilePath = './data/';
+		this.urlPath = 'https://raw.githubusercontent.com/Zarel/Pokemon-Showdown/master/data/';
 		/**@type {Map<string, Move>} */
 		this.MoveCache = new Map();
 		/**@type {Map<string, Item>} */
@@ -89,6 +91,19 @@ class Tools {
 	}
 
 	loadData() {
+		https.get(this.urlPath + 'typechart.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'typechart.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
+
 		let typeChart;
 		try {
 			typeChart = require(this.dataFilePath + 'typechart.js').BattleTypeChart;
@@ -115,6 +130,19 @@ class Tools {
 	loadPokedex() {
 		if (this.loadedData) this.PokemonCache.clear();
 
+		https.get(this.urlPath + 'pokedex.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'pokedex.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
+
 		let pokedex;
 		try {
 			pokedex = require(this.dataFilePath + 'pokedex.js').BattlePokedex;
@@ -128,6 +156,19 @@ class Tools {
 
 	loadMoves() {
 		if (this.loadedData) this.MoveCache.clear();
+
+		https.get(this.urlPath + 'moves.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'moves.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
 
 		let moves;
 		try {
@@ -143,6 +184,19 @@ class Tools {
 	loadItems() {
 		if (this.loadedData) this.ItemCache.clear();
 
+		https.get(this.urlPath + 'items.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'items.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
+
 		let items;
 		try {
 			items = require(this.dataFilePath + 'items.js').BattleItems;
@@ -157,6 +211,19 @@ class Tools {
 	loadAbilities() {
 		if (this.loadedData) this.AbilityCache.clear();
 
+		https.get(this.urlPath + 'abilities.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'abilities.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
+
 		let abilities;
 		try {
 			abilities = require(this.dataFilePath + 'abilities.js').BattleAbilities;
@@ -169,6 +236,19 @@ class Tools {
 	}
 
 	loadAliases() {
+		https.get(this.urlPath + 'aliases.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'aliases.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
+
 		let aliases;
 		try {
 			aliases = require(this.dataFilePath + 'aliases.js').BattleAliases;
@@ -183,6 +263,19 @@ class Tools {
 	loadLearnsets() {
 		if (this.loadedData) this.PokemonCache.clear();
 
+		https.get(this.urlPath + 'learnsets.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'learnsets.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
+
 		let learnsets;
 		try {
 			learnsets = require(this.dataFilePath + 'learnsets.js').BattleLearnsets;
@@ -196,6 +289,19 @@ class Tools {
 
 	loadFormatsData() {
 		if (this.loadedData) this.PokemonCache.clear();
+
+		https.get(this.urlPath + 'formats-data.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'formats-data.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
 
 		let formatsData;
 		try {
@@ -598,6 +704,7 @@ class Tools {
 	getFormat(name) {
 		if (name instanceof Data.Format) return name;
 		let id = this.toId(name);
+		if (id.startsWith('gen7')) id = id.slice(4);
 		if (id in this.data.aliases) {
 			name = this.data.aliases[id];
 			id = this.toId(name);

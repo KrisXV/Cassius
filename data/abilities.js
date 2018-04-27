@@ -38,7 +38,8 @@ Ratings and how they work:
 
 'use strict';
 
-exports.BattleAbilities = {
+/**@type {{[k: string]: AbilityData}} */
+let BattleAbilities = {
 	"adaptability": {
 		desc: "This Pokemon's moves that match one of its types have a same-type attack bonus (STAB) of 2 instead of 1.5.",
 		shortDesc: "This Pokemon's same-type attack bonus (STAB) is 2 instead of 1.5.",
@@ -2025,7 +2026,7 @@ exports.BattleAbilities = {
 		num: 121,
 	},
 	"mummy": {
-		desc: "Pokemon making contact with this Pokemon have their Ability changed to Mummy. Does not affect the Abilities Multitype or Stance Change.",
+		desc: "Pokemon making contact with this Pokemon have their Ability changed to Mummy. Does not affect the Abilities Battle Bond, Comatose, Disguise, Multitype, Power Construct, RKS System, Schooling, Shields Down, and Stance Change.",
 		shortDesc: "Pokemon making contact with this Pokemon have their Ability changed to Mummy.",
 		id: "mummy",
 		name: "Mummy",
@@ -4159,3 +4160,5 @@ exports.BattleAbilities = {
 		num: -4,
 	},
 };
+
+exports.BattleAbilities = BattleAbilities;

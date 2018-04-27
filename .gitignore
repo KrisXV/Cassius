@@ -36,6 +36,7 @@ node_modules
 config.js
 .eslintcache
 plugins/private.js
+data/*
 databases/*
 !databases/README.md
 package-lock.json

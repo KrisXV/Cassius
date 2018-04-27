@@ -28,7 +28,8 @@ sound: Has no effect on Pokemon with the Ability Soundproof.
 
 'use strict';
 
-exports.BattleMovedex = {
+/**@type {{[k: string]: MoveData}} */
+let BattleMovedex = {
 	"10000000voltthunderbolt": {
 		num: 719,
 		accuracy: true,
@@ -2768,8 +2769,7 @@ exports.BattleMovedex = {
 				if (source !== this.effectData.target) return;
 				return source.side.foe.active[this.effectData.position];
 			},
-			onDamagePriority: -101,
-			onDamage: function (damage, target, source, effect) {
+			onAfterDamage: function (damage, target, source, effect) {
 				// @ts-ignore
 				if (effect && effect.effectType === 'Move' && source.side !== target.side && this.getCategory(effect) === 'Physical') {
 					this.effectData.position = source.position;
@@ -10167,8 +10167,7 @@ exports.BattleMovedex = {
 				if (source !== this.effectData.target) return;
 				return source.side.foe.active[this.effectData.position];
 			},
-			onDamagePriority: -101,
-			onDamage: function (damage, target, source, effect) {
+			onAfterDamage: function (damage, target, source, effect) {
 				if (effect && effect.effectType === 'Move' && source.side !== target.side) {
 					this.effectData.position = source.position;
 					this.effectData.damage = 1.5 * damage;
@@ -10505,8 +10504,7 @@ exports.BattleMovedex = {
 				if (source !== this.effectData.target) return;
 				return source.side.foe.active[this.effectData.position];
 			},
-			onDamagePriority: -101,
-			onDamage: function (damage, target, source, effect) {
+			onAfterDamage: function (damage, target, source, effect) {
 				// @ts-ignore
 				if (effect && effect.effectType === 'Move' && source.side !== target.side && this.getCategory(effect) === 'Special') {
 					this.effectData.position = source.position;
@@ -19238,3 +19236,5 @@ exports.BattleMovedex = {
 		contestType: "Cute",
 	},
 };
+
+exports.BattleMovedex = BattleMovedex;

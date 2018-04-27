@@ -1,6 +1,7 @@
 'use strict';
 
-exports.BattleItems = {
+/**@type {{[k: string]: ItemData}} */
+let BattleItems = {
 	"abomasite": {
 		id: "abomasite",
 		name: "Abomasite",
@@ -6480,3 +6481,5 @@ exports.BattleItems = {
 		desc: "If held by a Crucibelle, this item allows it to Mega Evolve in battle.",
 	},
 };
+
+exports.BattleItems = BattleItems;
