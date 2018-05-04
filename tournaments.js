@@ -26,6 +26,11 @@ class Tournaments {
 	 * @return {Tournament}
 	 */
 	createTournament(room, format, generator) {
+		Storage.getDatabase('roa').tour["addedRules"] = [];
+		Storage.getDatabase('roa').tour["removedRules"] = [];
+		Storage.getDatabase('roa').tour["banlist"] = [];
+		Storage.getDatabase('roa').tour["unbanlist"] = [];
+		Storage.exportDatabase('roa');
 		return new Tournament(room, format, generator);
 	}
 

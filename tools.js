@@ -53,6 +53,7 @@ const nullCharactersRegex = new RegExp('[\u0000\u200B-\u200F]+', 'g');
 * @property {{[k: string]: Learnset}} learnsets
 * @property {{[k: string]: TypeChart}} typeChart
 * @property {{[k: string]: FormatData}} formatsData
+* @property {Array<Object>} formats
 * @property {Array<Array<string>>} teams
 * @property {Array<String>} trainerClasses
 */
@@ -69,6 +70,7 @@ class Tools {
 			learnsets: {},
 			typeChart: {},
 			formatsData: {},
+			formats: [],
 			teams: [],
 			trainerClasses: [],
 		};
@@ -121,6 +123,7 @@ class Tools {
 		this.loadAliases();
 		this.loadLearnsets();
 		this.loadFormatsData();
+		this.loadFormats();
 		this.loadTeams();
 		this.loadTrainerClasses();
 
@@ -312,6 +315,32 @@ class Tools {
 			}
 		}
 		if (formatsData) this.data.formatsData = formatsData;
+	}
+
+	loadFormats() {
+		this.urlPath = 'https://raw.githubusercontent.com/Zarel/Pokemon-Showdown/master/config/';
+		https.get(this.urlPath + 'formats.js', res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			});
+			res.on('end', () => {
+				if (data) {
+					fs.writeFileSync(this.dataFilePath + 'formats.js', data);
+				}
+			});
+			res.on('error', err => console.log(err.stack));
+		});
+
+		let formats;
+		try {
+			formats = require(this.dataFilePath + 'formats.js').Formats;
+		} catch (e) {
+			if (e.code !== 'MODULE_NOT_FOUND') {
+				throw e;
+			}
+		}
+		if (formats) this.data.formats = formats;
 	}
 
 	loadTeams() {
@@ -718,6 +747,11 @@ class Tools {
 		format = new Data.Format(name, MessageParser.formatsData[id]);
 		this.FormatCache.set(id, format);
 		return format;
+	}
+
+	/** @return {Array<string>} */
+	getTiers() {
+		return ["Uber", "OU", "UUBL", "UU", "RUBL", "RU", "NUBL", "NU", "PUBL", "PU", "NFE", "LC Uber", "LC", "DUber", "DOU", "DBL", "DUU", "Unreleased", "Illegal"];
 	}
 
 	/**

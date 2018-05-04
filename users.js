@@ -61,6 +61,14 @@ class User {
 	}
 
 	/**
+	 * @return {boolean}
+	*/
+	isHost() {
+		let hosts = Storage.getDatabase('roa').hosts;
+		return hosts && hosts.includes(this.id);
+	}
+
+	/**
 	 * @param {string} message
 	 */
 	say(message) {

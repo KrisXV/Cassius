@@ -157,6 +157,11 @@ class Tournament {
 			}
 		}
 		this.updates = {};
+		Storage.getDatabase('roa').tour["addedRules"] = [];
+		Storage.getDatabase('roa').tour["removedRules"] = [];
+		Storage.getDatabase('roa').tour["banlist"] = [];
+		Storage.getDatabase('roa').tour["unbanlist"] = [];
+		Storage.exportDatabase('roa');
 	}
 
 	updateBracket() {
@@ -237,6 +242,11 @@ class Tournament {
 	end() {
 		this.ended = true;
 		delete this.room.tour;
+		Storage.getDatabase('roa').tour["addedRules"] = [];
+		Storage.getDatabase('roa').tour["removedRules"] = [];
+		Storage.getDatabase('roa').tour["banlist"] = [];
+		Storage.getDatabase('roa').tour["unbanlist"] = [];
+		Storage.exportDatabase('roa');
 	}
 }
 

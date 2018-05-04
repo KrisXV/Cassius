@@ -32,11 +32,15 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
-# Cassius files
+# Kris-Bot files
 config.js
 .eslintcache
 plugins/private.js
+plugins/experimental-cmds.js
 data/*
+!data/teams.js
+!data/trainer-classes.js
+!data/README.md
 databases/*
 !databases/README.md
 package-lock.json

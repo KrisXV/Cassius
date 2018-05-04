@@ -9,6 +9,8 @@
 
 'use strict';
 
+const cmdChar = Config.commandCharacter;
+
 // Users who use the settour command when a tournament is already
 // scheduled will be added here and prompted to reuse the command.
 // This prevents accidentally overwriting a scheduled tournament.
@@ -25,7 +27,7 @@ let commands = {
 			target = eval(target);
 			this.say(JSON.stringify(target));
 		} catch (e) {
-			this.say(e.name + ": " + e.message);
+			this.say(`${e.name}: ${e.message}`);
 		}
 	},
 
@@ -33,25 +35,25 @@ let commands = {
 		if (room instanceof Users.User || !user.canPerform(room)) return;
 		let database = Storage.getDatabase('global');
 		target = target.trim();
-		if (!target) return this.say("Correct syntax: ``@blacklist username``");
+		if (!target) return this.say(`Correct syntax: **${cmdChar}blacklist username**`);
 		let bl = database.blacklist;
 		let index = bl.findIndex(/**@param {string} bl */ bl => Tools.toId(bl) === Tools.toId(target));
 		if (index >= 0) return this.say("That user is already banned from using commands.");
 		bl.push(Tools.toId(target));
 		Storage.exportDatabase('global');
-		this.say("" + target + " was successfully banned from using commands.");
+		this.say(`${target} was successfully banned from using commands.`);
 	},
 	unblacklist: function (target, room, user) {
 		if (room instanceof Users.User || !user.canPerform(room)) return;
 		let database = Storage.getDatabase('global');
 		target = target.trim();
-		if (!target) return this.say("Correct syntax: ``@blacklist username``");
+		if (!target) return this.say(`Correct syntax: **${cmdChar}blacklist username**`);
 		let bl = database.blacklist;
 		let index = bl.findIndex(/**@param {string} bl */ bl => Tools.toId(bl) === Tools.toId(target));
 		if (index < 0) return this.say("That user is already unbanned from using commands.");
 		bl.splice(index, 1);
 		Storage.exportDatabase('global');
-		this.say("" + target + " was successfully unbanned from using commands.");
+		this.say(`${target} was successfully unbanned from using commands.`);
 	},
 	blacklisted: function (target, room, user) {
 		if (room instanceof Users.User || !user.canPerform(room)) return;
@@ -65,26 +67,26 @@ let commands = {
 			(blist, index) => (index + 1) + ": " + Tools.toId(blist)
 		).join("\n");
 		Tools.uploadToHastebin(blacklist, /**@param {string} hastebinUrl */ hastebinUrl => {
-			this.pm(user, "Blacklisted users: " + hastebinUrl);
+			this.pm(user, `Blacklisted users: ${hastebinUrl}`);
 		});
 	},
 
 	// General commands
 	about: function (target, room, user) {
 		if (!(room instanceof Users.User) && !user.hasRank(room, '+')) return;
-		this.say(Config.username + " code by sirDonovan: https://github.com/sirDonovan/Cassius");
+		this.say(`${Config.username} code by Kris: https://github.com/KrisXV/Kris-Bot`);
 	},
 	help: function (target, room, user) {
 		if (!(room instanceof Users.User) && !user.hasRank(room, '+')) return;
 		if (!Config.guide) return this.say("There is no guide available.");
-		this.say(Users.self.name + " guide: " + Config.guide);
+		this.say(`${Users.self.name} guide: ${Config.guide}`);
 	},
 	mail: function (target, room, user) {
 		if (!(room instanceof Users.User) || !Config.allowMail) return;
 		let targets = target.split(',');
-		if (targets.length < 2) return this.say("Please use the following format: .mail user, message");
+		if (targets.length < 2) return this.say(`Correct syntax: **${cmdChar}mail user, message**`);
 		let to = Tools.toId(targets[0]);
-		if (!to || to.length > 18 || to === Users.self.id || to.startsWith('guest')) return this.say("Please enter a valid username");
+		if (!to || to.length > 18 || to === Users.self.id || to.startsWith('guest')) return this.say("Please enter a valid username.");
 		let message = targets.slice(1).join(',').trim();
 		let id = Tools.toId(message);
 		if (!id) return this.say("Please include a message to send.");
@@ -92,16 +94,16 @@ let commands = {
 		let database = Storage.getDatabase('global');
 		if (to in database.mail) {
 			let queued = 0;
-			for (let i = 0, len = database.mail[to].length; i < len; i++) {
-				if (Tools.toId(database.mail[to][i].from) === user.id) queued++;
+			for (const sentMail of database.mail[to]) {
+				if (Tools.toId(sentMail.from) === user.id) queued++;
 			}
-			if (queued >= 3) return this.say("You have too many messages queued for " + Users.add(targets[0]).name + ".");
+			if (queued >= 3) return this.say(`You have too many messages queued for ${Users.add(targets[0]).name}.`);
 		} else {
 			database.mail[to] = [];
 		}
 		database.mail[to].push({time: Date.now(), from: user.name, text: message});
 		Storage.exportDatabase('global');
-		this.say("Your message has been sent to " + Users.add(targets[0]).name + "!");
+		this.say(`Your message has been sent to ${Users.add(targets[0]).name}!`);
 	},
 
 	// Game commands
@@ -111,8 +113,8 @@ let commands = {
 		if (!user.hasRank(room, '+')) return;
 		if (!Config.games || !Config.games.includes(room.id)) return this.say("Games are not enabled for this room.");
 		let format = Games.getFormat(target);
-		if (!format || format.inheritOnly) return this.say("The game '" + target + "' was not found.");
-		if (format.internal) return this.say(format.name + " cannot be started manually.");
+		if (!format || format.inheritOnly) return this.say(`The game '${target}' was not found.`);
+		if (format.internal) return this.say(`${format.name} cannot be started manually.`);
 		Games.createGame(format, room);
 		if (!room.game) return;
 		room.game.signups();
@@ -127,10 +129,10 @@ let commands = {
 		if (room instanceof Users.User || !room.game || !user.hasRank(room, '+')) return;
 		let cap = parseInt(target);
 		if (isNaN(cap)) return this.say("Please enter a valid player cap.");
-		if (cap < room.game.minPlayers) return this.say(room.game.name + " must have at least " + room.game.minPlayers + " players.");
-		if (room.game.maxPlayers && cap > room.game.maxPlayers) return this.say(room.game.name + " cannot have more than " + room.game.maxPlayers + " players.");
+		if (cap < room.game.minPlayers) return this.say(`${room.game.name} must have at least ${room.game.minPlayers} players.`);
+		if (room.game.maxPlayers && cap > room.game.maxPlayers) return this.say(`${room.game.name} cannot have more than ${room.game.maxPlayers} players.`);
 		room.game.playerCap = cap;
-		this.say("The game will automatically start at **" + cap + "** players!");
+		this.say(`The game will automatically start at **${cap}** players!`);
 	},
 	end: 'endgame',
 	endgame: function (target, room, user) {
@@ -157,9 +159,9 @@ let commands = {
 		let points = [];
 		user.rooms.forEach((rank, room) => {
 			if (!(room.id in Storage.databases) || !('leaderboard' in Storage.databases[room.id])) return;
-			if (targetUserid in Storage.databases[room.id].leaderboard) points.push("**" + room.id + "**: " + Storage.databases[room.id].leaderboard[targetUserid].points);
+			if (targetUserid in Storage.databases[room.id].leaderboard) points.push(`**${room.id}**: ${Storage.databases[room.id].leaderboard[targetUserid].points}`);
 		});
-		if (!points.length) return this.say((target ? target.trim() + " does not" : "You do not") + " have points on any leaderboard.");
+		if (!points.length) return this.say(`${target ? `${target.trim()} does not` : `You do not`} have points on any leaderboard.`);
 		this.say(points.join(" | "));
 	},
 
@@ -172,11 +174,11 @@ let commands = {
 			if (!room.tour) return this.say("I am not currently tracking a tournament in this room.");
 			let info = "``" + room.tour.name + " tournament info``";
 			if (room.tour.startTime) {
-				return this.say(info + ": **Time**: " + Tools.toDurationString(Date.now() - room.tour.startTime) + " | **Remaining players**: " + room.tour.getRemainingPlayerCount() + '/' + room.tour.totalPlayers);
+				return this.say(`${info}: **Time**: ${Tools.toDurationString(Date.now() - room.tour.startTime)} | **Remaining players**: ${room.tour.getRemainingPlayerCount()}/${room.tour.totalPlayers}`);
 			} else if (room.tour.started) {
-				return this.say(info + ": **Remaining players**: " + room.tour.getRemainingPlayerCount() + '/' + room.tour.totalPlayers);
+				return this.say(`${info}: **Remaining players**: ${room.tour.getRemainingPlayerCount()}/${room.tour.totalPlayers}`);
 			} else {
-				return this.say(info + ": " + room.tour.playerCount + " player" + (room.tour.playerCount > 1 ? "s" : ""));
+				return this.say(`${info}: ${room.tour.playerCount} player${room.tour.playerCount > 1 ? `s` : ``}`);
 			}
 		} else {
 			if (!user.hasRank(room, '%')) return;
@@ -193,13 +195,13 @@ let commands = {
 			default:
 				format = Tools.getFormat(cmd);
 				if (!format) return this.say('**Error:** invalid format.');
-				if (!format.playable) return this.say(format.name + " cannot be played, please choose another format.");
+				if (!format.playable) return this.say(`${format.name} cannot be played, please choose another format.`);
 				let cap;
 				if (targets[1]) {
 					cap = parseInt(Tools.toId(targets[1]));
 					if (cap < 2 || cap > Tournaments.maxCap || isNaN(cap)) return this.say("**Error:** invalid participant cap.");
 				}
-				this.say("/tour new " + format.id + ", elimination, " + (cap ? cap + ", " : "") + (targets.length > 2 ? ", " + targets.slice(2).join(", ") : ""));
+				this.say(`/tour new ${format.id}, elimination, ${cap ? `${cap}, ` : ``}${targets.length > 2 ? `, ${targets.slice(2).join(", ")}` : ``}`);
 			}
 		}
 	},
@@ -215,7 +217,7 @@ let commands = {
 			overwriteWarnings.delete(room.id);
 		}
 		let targets = target.split(',');
-		if (targets.length < 2) return this.say(Config.commandCharacter + "settour - tier, time, cap (optional)");
+		if (targets.length < 2) return this.say(`${cmdChar}settour - tier, time, cap (optional)`);
 		let format = Tools.getFormat(targets[0]);
 		if (!format) return this.say('**Error:** invalid format.');
 		if (!format.playable) return this.say(format.name + " cannot be played, please choose another format.");
@@ -236,7 +238,7 @@ let commands = {
 		let timer = targetTime - currentTime;
 		if (timer <= 0) timer += 24 * 60 * 60 * 1000;
 		Tournaments.setTournamentTimer(room, timer, format.id, targets[2] ? parseInt(targets[2]) : 0);
-		this.say("The " + format.name + " tournament is scheduled for " + Tools.toDurationString(timer) + ".");
+		this.say(`The ${format.name} tournament is scheduled for ${Tools.toDurationString(timer)}.`);
 	},
 	canceltour: 'canceltournament',
 	canceltournament: function (target, room, user) {
