@@ -53,7 +53,7 @@ let commands = {
 		if (!(tZeroId in database)) return this.say(`The format ${targets[0].trim()} wasn't found.`);
 		let index = database[tZeroId].findIndex(/**@param {string} link */ link => Tools.toId(link) === Tools.toId(targets[1]));
 		if (index < 0) return this.say("That link isn't in the database.");
-		database[tZeroId].slice(index, 1);
+		database[tZeroId].splice(index, 1);
 		Storage.exportDatabase(room.id);
 		return this.say("Sample team removed.");
 	},
@@ -66,7 +66,7 @@ let commands = {
 			if (!database) return this.say("There are currently no formats.");
 			let dbList = [];
 			for (let i in database) {
-				dbList.push(Tools.toId(database[i]));
+				dbList.push(i);
 			}
 			let prettifiedDbList = "Sample team formats for " + room.id + ":\n\n" + dbList.map(
 				/**
