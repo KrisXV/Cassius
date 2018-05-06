@@ -157,11 +157,11 @@ class Tournament {
 			}
 		}
 		this.updates = {};
-		Storage.getDatabase('roa').tour["addedRules"] = [];
-		Storage.getDatabase('roa').tour["removedRules"] = [];
-		Storage.getDatabase('roa').tour["banlist"] = [];
-		Storage.getDatabase('roa').tour["unbanlist"] = [];
-		Storage.exportDatabase('roa');
+		Storage.getDatabase(this.room.id).tour["addedRules"] = [];
+		Storage.getDatabase(this.room.id).tour["removedRules"] = [];
+		Storage.getDatabase(this.room.id).tour["banlist"] = [];
+		Storage.getDatabase(this.room.id).tour["unbanlist"] = [];
+		Storage.exportDatabase(this.room.id);
 	}
 
 	updateBracket() {
@@ -242,11 +242,11 @@ class Tournament {
 	end() {
 		this.ended = true;
 		delete this.room.tour;
-		Storage.getDatabase('roa').tour["addedRules"] = [];
-		Storage.getDatabase('roa').tour["removedRules"] = [];
-		Storage.getDatabase('roa').tour["banlist"] = [];
-		Storage.getDatabase('roa').tour["unbanlist"] = [];
-		Storage.exportDatabase('roa');
+		Storage.getDatabase(this.room.id).tour["addedRules"] = [];
+		Storage.getDatabase(this.room.id).tour["removedRules"] = [];
+		Storage.getDatabase(this.room.id).tour["banlist"] = [];
+		Storage.getDatabase(this.room.id).tour["unbanlist"] = [];
+		Storage.exportDatabase(this.room.id);
 	}
 }
 
