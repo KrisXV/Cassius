@@ -45,7 +45,7 @@ const nullCharactersRegex = new RegExp('[\u0000\u200B-\u200F]+', 'g');
 /**
 * @typedef DataTable
 * @type {Object}
-* @property {{[k: string]: Pokemon}} pokedex
+* @property {{[k: string]: Template}} pokedex
 * @property {{[k: string]: Move}} moves
 * @property {{[k: string]: Item}} items
 * @property {{[k: string]: Ability}} abilities
@@ -83,7 +83,7 @@ class Tools {
 		this.ItemCache = new Map();
 		/**@type {Map<string, Ability>} */
 		this.AbilityCache = new Map();
-		/**@type {Map<string, Pokemon>} */
+		/**@type {Map<string, Template>} */
 		this.PokemonCache = new Map();
 		/**@type {Map<string, Format>} */
 		this.FormatCache = new Map();
@@ -577,18 +577,18 @@ class Tools {
 	}
 
 	/**
-	 * @param {Pokemon | string} name
-	 * @return {?Pokemon}
+	 * @param {Template | string} name
+	 * @return {?Template}
 	 */
-	getPokemon(name) {
-		if (name instanceof Data.Pokemon) return name;
+	getTemplate(name) {
+		if (name instanceof Data.Template) return name;
 		let id = this.toId(name);
 		if (id in this.data.aliases) {
 			name = this.data.aliases[id];
 			id = this.toId(name);
 		}
-		let pokemon = this.PokemonCache.get(id);
-		if (pokemon) return pokemon;
+		let template = this.PokemonCache.get(id);
+		if (template) return template;
 		if (id === 'constructor') return null;
 		if (!(id in this.data.pokedex)) {
 			let aliasTo = '';
@@ -602,41 +602,41 @@ class Tools {
 				aliasTo = id.slice(1) + 'primal';
 			}
 			if (aliasTo) {
-				let pokemon = this.getPokemon(aliasTo);
-				if (pokemon) {
-					this.PokemonCache.set(id, pokemon);
-					return pokemon;
+				let template = this.getTemplate(aliasTo);
+				if (template) {
+					this.PokemonCache.set(id, template);
+					return template;
 				}
 			}
 			return null;
 		}
-		pokemon = new Data.Pokemon(name, this.data.pokedex[id], this.data.learnsets[id], this.data.formatsData[id]);
-		if (!pokemon.tier && !pokemon.doublesTier && pokemon.baseSpecies !== pokemon.species) {
-			if (pokemon.baseSpecies === 'Mimikyu') {
-				pokemon.tier = this.data.formatsData[this.toId(pokemon.baseSpecies)].tier;
-				pokemon.doublesTier = this.data.formatsData[this.toId(pokemon.baseSpecies)].doublesTier;
-			} else if (pokemon.speciesid.endsWith('totem')) {
-				pokemon.tier = this.data.formatsData[pokemon.speciesid.slice(0, -5)].tier;
-				pokemon.doublesTier = this.data.formatsData[pokemon.speciesid.slice(0, -5)].doublesTier;
+		template = new Data.Template(name, this.data.pokedex[id], this.data.learnsets[id], this.data.formatsData[id]);
+		if (!template.tier && !template.doublesTier && template.baseSpecies !== template.species) {
+			if (template.baseSpecies === 'Mimikyu') {
+				template.tier = this.data.formatsData[this.toId(template.baseSpecies)].tier;
+				template.doublesTier = this.data.formatsData[this.toId(template.baseSpecies)].doublesTier;
+			} else if (template.speciesid.endsWith('totem')) {
+				template.tier = this.data.formatsData[template.speciesid.slice(0, -5)].tier;
+				template.doublesTier = this.data.formatsData[template.speciesid.slice(0, -5)].doublesTier;
 			} else {
-				pokemon.tier = this.data.formatsData[this.toId(pokemon.baseSpecies)].tier;
-				pokemon.doublesTier = this.data.formatsData[this.toId(pokemon.baseSpecies)].doublesTier;
+				template.tier = this.data.formatsData[this.toId(template.baseSpecies)].tier;
+				template.doublesTier = this.data.formatsData[this.toId(template.baseSpecies)].doublesTier;
 			}
 		}
-		if (!pokemon.tier) pokemon.tier = 'Illegal';
-		if (!pokemon.doublesTier) pokemon.doublesTier = pokemon.tier;
-		this.PokemonCache.set(id, pokemon);
-		return pokemon;
+		if (!template.tier) template.tier = 'Illegal';
+		if (!template.doublesTier) template.doublesTier = template.tier;
+		this.PokemonCache.set(id, template);
+		return template;
 	}
 
 	/**
-	 * @param {Pokemon | string} name
-	 * @return {Pokemon}
+	 * @param {Template | string} name
+	 * @return {Template}
 	 */
-	getExistingPokemon(name) {
-		let pokemon = this.getPokemon(name);
-		if (!pokemon) throw new Error("Expected Pokemon for '" + name + "'");
-		return pokemon;
+	getExistingTemplate(name) {
+		let template = this.getTemplate(name);
+		if (!template) throw new Error("Expected Pokemon for '" + name + "'");
+		return template;
 	}
 
 	/**
@@ -766,14 +766,14 @@ class Tools {
 
 	/**
 	 * @param {Move | string} source
-	 * @param {Pokemon | string | Array<string>} target
+	 * @param {Template | string | Array<string>} target
 	 * @return {number}
 	 */
 	getEffectiveness(source, target) {
 		let sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType;
 		if (typeof target === 'string') {
-			let pokemon = this.getPokemon(target);
+			let pokemon = this.getTemplate(target);
 			if (pokemon) {
 				targetType = pokemon.types;
 			} else {
@@ -802,14 +802,14 @@ class Tools {
 
 	/**
 	 * @param {Move | string} source
-	 * @param {Pokemon | string | Array<string>} target
+	 * @param {Template | string | Array<string>} target
 	 * @return {boolean}
 	 */
 	isImmune(source, target) {
 		let sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType;
 		if (typeof target === 'string') {
-			let pokemon = this.getPokemon(target);
+			let pokemon = this.getTemplate(target);
 			if (pokemon) {
 				targetType = pokemon.types;
 			} else {
@@ -921,7 +921,7 @@ class Tools {
 
 	freezeData() {
 		for (let i in this.data.pokedex) {
-			this.deepFreeze(this.getPokemon(i));
+			this.deepFreeze(this.getTemplate(i));
 		}
 
 		for (let i in this.data.moves) {

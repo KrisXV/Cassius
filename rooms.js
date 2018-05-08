@@ -27,6 +27,13 @@ class Room {
 	}
 
 	/**
+	 * @return {boolean}
+	 */
+	isPrivate() {
+		return Config.privateRooms && Config.privateRooms.includes(this.id);
+	}
+
+	/**
 	 * @param {User} user
 	 * @param {string} rank
 	 */

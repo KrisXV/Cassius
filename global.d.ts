@@ -38,5 +38,5 @@ declare global {
 	const Format: typeof DataType.Format
 	const Item: typeof DataType.Item
 	const Move: typeof DataType.Move
-	const Pokemon: typeof DataType.Pokemon
+	const Template: typeof DataType.Template
 }

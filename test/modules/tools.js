@@ -9,9 +9,9 @@ describe('Tools', function () {
 			assert(Tools.toId({id: "Test"}) === "test");
 		});
 	});
-	describe('getPokemon', function () {
+	describe('getTemplate', function () {
 		it('should return a Pokemon with the necessary data', function () {
-			let base = Tools.getExistingPokemon("Arceus");
+			let base = Tools.getExistingTemplate("Arceus");
 			assert(base.types.length === 1);
 			assert(base.types[0] === 'Normal');
 			assert(base.species === 'Arceus');
@@ -20,7 +20,7 @@ describe('Tools', function () {
 			assert(base.learnset);
 			assert(base.tier);
 
-			let forme = Tools.getExistingPokemon('Arceus-Fire');
+			let forme = Tools.getExistingTemplate('Arceus-Fire');
 			assert(forme.types.length === 1);
 			assert(forme.types[0] === 'Fire');
 			assert(forme.species === 'Arceus-Fire');
@@ -29,7 +29,7 @@ describe('Tools', function () {
 			assert(!forme.learnset);
 			assert(forme.tier);
 
-			assert(Tools.getExistingPokemon("Missingno.").isNonstandard);
+			assert(Tools.getExistingTemplate("Missingno.").isNonstandard);
 		});
 	});
 	describe('getMove', function () {

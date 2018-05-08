@@ -28,6 +28,11 @@ exports.guide = '';
 /**@type {Array<string>} */
 exports.rooms = [];
 
+// Rooms where the commands in private.js are usable
+// example: exports.privateRooms = ['room1', 'room2', 'room3'];
+/**@type {Array<string>} */
+exports.privateRooms = [];
+
 // Rooms where scripted games are enabled
 /**@type {Array<string>} */
 exports.games = [];
@@ -50,7 +55,7 @@ exports.groups = {
 	'+': 1,
 	'%': 2,
 	'@': 3,
-	'*': 3,
+	'*': 3.1,
 	'#': 4,
 	'&': 5,
 	'~': 6,

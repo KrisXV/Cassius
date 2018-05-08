@@ -28,7 +28,7 @@ class Effect {
 		this.id = Tools.toId(this.name);
 		/**
 		 * Effect type.
-		 * @type {'Effect' | 'Pokemon' | 'Move' | 'Item' | 'Ability' | 'Format' | 'Ruleset' | 'Weather' | 'Status' | 'Rule' | 'ValidatorRule'}
+		 * @type {'Effect' | 'Template' | 'Move' | 'Item' | 'Ability' | 'Format' | 'Ruleset' | 'Weather' | 'Status' | 'Rule' | 'ValidatorRule'}
 		 */
 		this.effectType = 'Effect';
 		/**
@@ -200,7 +200,7 @@ class Ability extends Effect {
 	}
 }
 
-class Pokemon extends Effect {
+class Template extends Effect {
 	/**
 	 * @param {string} name
 	 * @param {?AnyObject} [data]
@@ -211,8 +211,8 @@ class Pokemon extends Effect {
 		super(name, data);
 		if (learnsetData) Object.assign(this, learnsetData);
 		if (formatsData) Object.assign(this, formatsData);
-		/** @type {'Pokemon'} */
-		this.effectType = 'Pokemon';
+		/** @type {'Template'} */
+		this.effectType = 'Template';
 
 		/**
 		 * Species ID. Identical to ID. Note that this is the full ID, e.g.
@@ -559,6 +559,6 @@ class Move extends Effect {
 exports.Effect = Effect;
 exports.Format = Format;
 exports.Item = Item;
-exports.Pokemon = Pokemon;
+exports.Template = Template;
 exports.Move = Move;
 exports.Ability = Ability;

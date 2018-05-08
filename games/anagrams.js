@@ -18,7 +18,7 @@ const data = {
 };
 
 for (let i in Tools.data.pokedex) {
-	let pokemon = Tools.getExistingPokemon(i);
+	let pokemon = Tools.getExistingTemplate(i);
 	if (!pokemon.species) continue;
 	data["Pokemon"].push(pokemon.species);
 }

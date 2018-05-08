@@ -54,6 +54,10 @@ let commands = {
 		let index = database[tZeroId].findIndex(/**@param {string} link */ link => Tools.toId(link) === Tools.toId(targets[1]));
 		if (index < 0) return this.say("That link isn't in the database.");
 		database[tZeroId].splice(index, 1);
+		if (!database[tZeroId].length) {
+			delete database[tZeroId];
+			this.say(`The sample team index for ${tZeroId} is now empty, so it has been deleted.`);
+		}
 		Storage.exportDatabase(room.id);
 		return this.say("Sample team removed.");
 	},
@@ -214,6 +218,7 @@ let commands = {
 		}
 		if (room instanceof Users.User) return;
 		let tour = getDatabase(room).tour;
+		let samples = getDatabase(room).samples;
 		let finalRuleset = [];
 		switch (Tools.toId(targets[0])) {
 		case 'start': case 'forcestart':
@@ -294,7 +299,7 @@ let commands = {
 			let banlistString = banlist.join(',').trim();
 			if (!banlistString) return this.say(`Please provide Pokemon to ban from the tournament.`);
 			for (const ban of banlist) {
-				if (!Tools.getPokemon(ban) && !Tools.getItem(ban) && !Tools.getAbility(ban) && !Tools.getMove(ban) && !Tools.toId(Tools.getTiers()).includes(Tools.toId(ban))) {
+				if (!Tools.getTemplate(ban) && !Tools.getItem(ban) && !Tools.getAbility(ban) && !Tools.getMove(ban) && !Tools.toId(Tools.getTiers()).includes(Tools.toId(ban))) {
 					return this.say(`Pokemon, move, nature, ability, or tier ${ban} not found.`);
 				}
 				if (tour["unbanlist"].includes(`+${ban.trim()}`)) {
@@ -314,7 +319,7 @@ let commands = {
 			let unbanlistString = unbanlist.join(',').trim();
 			if (!unbanlistString) return this.say(`Please provide Pokemon to unban from the tournament.`);
 			for (const unban of unbanlist) {
-				if (!Tools.getPokemon(unban) && !Tools.getItem(unban) && !Tools.getAbility(unban) && !Tools.getMove(unban) && !Tools.toId(Tools.getTiers()).includes(Tools.toId(unban))) {
+				if (!Tools.getTemplate(unban) && !Tools.getItem(unban) && !Tools.getAbility(unban) && !Tools.getMove(unban) && !Tools.toId(Tools.getTiers()).includes(Tools.toId(unban))) {
 					return this.say(`Pokemon, move, nature, ability, or tier ${unban} not found.`);
 				}
 				if (tour["banlist"].includes(`-${unban.trim()}`)) {
@@ -342,6 +347,7 @@ let commands = {
 			targets = target.split(',');
 			let f = targets[0];
 			let format = Tools.getFormat(f);
+			/**@type {string} */
 			let formatid;
 			if (!format) {
 				formatid = Tools.toId(f).startsWith('gen7') ? Tools.toId(f) : 'gen7' + Tools.toId(f);
@@ -355,7 +361,34 @@ let commands = {
 				tour["unbanlist"] = [];
 				Storage.exportDatabase(room.id);
 				this.say(`/modnote Tournament made by ${user.id}`);
-				return this.say(`/tour new ${formatid}, elimination`);
+				this.say(`/tour new ${formatid}, elimination`);
+				if (formatid in samples) {
+					if (samples[formatid].length < 2) {
+						this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
+					} else {
+						if (Users.self.hasRank(room, '*')) {
+							let buf = `<h4>Sample teams for ${formatid}:</h4>`;
+							buf += `<ul>`;
+							for (const link of samples[formatid]) {
+								buf += `<li><a href="${link}">${link}</a></li>`;
+							}
+							buf += `</ul>`;
+							this.sayHtml(buf);
+						} else {
+							let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
+								/**
+								 * @param {string} team
+								 * @param {number} index
+								 */
+								(team, index) => (index + 1) + ": " + team
+							).join("\n");
+							Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
+								this.say("Sample teams for " + formatid + ": " + hastebinUrl);
+							});
+						}
+					}
+				}
+				return;
 			}
 			if (targets[1]) {
 				if (!['elimination', 'roundrobin'].includes(Tools.toId(targets[1]))) return this.say(`${targets[1]} is not a valid tournament type.`);
@@ -366,7 +399,34 @@ let commands = {
 					tour["unbanlist"] = [];
 					Storage.exportDatabase(room.id);
 					this.say(`/modnote Tournament made by ${user.id}`);
-					return this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}`);
+					this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}`);
+					if (formatid in samples) {
+						if (samples[formatid].length < 2) {
+							this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
+						} else {
+							if (Users.self.hasRank(room, '*')) {
+								let buf = `<h4>Sample teams for ${formatid}:</h4>`;
+								buf += `<ul>`;
+								for (const link of samples[formatid]) {
+									buf += `<li><a href="${link}">${link}</a></li>`;
+								}
+								buf += `</ul>`;
+								this.sayHtml(buf);
+							} else {
+								let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
+									/**
+									 * @param {string} team
+									 * @param {number} index
+									 */
+									(team, index) => (index + 1) + ": " + team
+								).join("\n");
+								Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
+									this.say("Sample teams for " + formatid + ": " + hastebinUrl);
+								});
+							}
+						}
+					}
+					return;
 				}
 			}
 			if (targets[2]) {
@@ -378,7 +438,34 @@ let commands = {
 					tour["unbanlist"] = [];
 					Storage.exportDatabase(room.id);
 					this.say(`/modnote Tournament made by ${user.id}`);
-					return this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}`);
+					this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}`);
+					if (formatid in samples) {
+						if (samples[formatid].length < 2) {
+							this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
+						} else {
+							if (Users.self.hasRank(room, '*')) {
+								let buf = `<h4>Sample teams for ${formatid}:</h4>`;
+								buf += `<ul>`;
+								for (const link of samples[formatid]) {
+									buf += `<li><a href="${link}">${link}</a></li>`;
+								}
+								buf += `</ul>`;
+								this.sayHtml(buf);
+							} else {
+								let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
+									/**
+									 * @param {string} team
+									 * @param {number} index
+									 */
+									(team, index) => (index + 1) + ": " + team
+								).join("\n");
+								Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
+									this.say("Sample teams for " + formatid + ": " + hastebinUrl);
+								});
+							}
+						}
+					}
+					return;
 				}
 			}
 			if (targets[3]) {
@@ -390,7 +477,34 @@ let commands = {
 					tour["unbanlist"] = [];
 					Storage.exportDatabase(room.id);
 					this.say(`/modnote Tournament made by ${user.id}`);
-					return this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}, ${parseInt(Tools.toId(targets[3]))}`);
+					this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}, ${parseInt(Tools.toId(targets[3]))}`);
+					if (formatid in samples) {
+						if (samples[formatid].length < 2) {
+							this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
+						} else {
+							if (Users.self.hasRank(room, '*')) {
+								let buf = `<h4>Sample teams for ${formatid}:</h4>`;
+								buf += `<ul>`;
+								for (const link of samples[formatid]) {
+									buf += `<li><a href="${link}">${link}</a></li>`;
+								}
+								buf += `</ul>`;
+								this.sayHtml(buf);
+							} else {
+								let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
+									/**
+									 * @param {string} team
+									 * @param {number} index
+									 */
+									(team, index) => (index + 1) + ": " + team
+								).join("\n");
+								Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
+									this.say("Sample teams for " + formatid + ": " + hastebinUrl);
+								});
+							}
+						}
+					}
+					return;
 				}
 			}
 		}

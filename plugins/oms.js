@@ -17,7 +17,7 @@ function getOMDatabase() {
 /**@type {{[k: string]: Command | string}} */
 let commands = {
 	om: function (target, room, user) {
-		if (!target) return this.say(`Correct syntax: **${cmdChar}om [Other Metagame]**, **${cmdChar}om add [Other Metagame (no spaces)], [link], [desc]**, or **${cmdChar}om remove [Other Metagame]**`);
+		if (!target) return this.say(`Correct syntax: ${cmdChar}om __[Other Metagame]__, ${cmdChar}om add __[Other Metagame]__, __[link]__, __[desc]__, or ${cmdChar}om remove __[Other Metagame]__`);
 		let targets = target.split(' ');
 		let database = getOMDatabase();
 		switch (Tools.toId(targets[0])) {
@@ -110,10 +110,10 @@ let commands = {
 	scale: 'scalemons',
 	scalemons: function (target, room, user) {
 		if (!target) return this.say(`Correct syntax: **${cmdChar}scalemons pokemon** - Shows a Pokemon's scaled stats.`);
-		let template = Object.assign(Object.create(null), Tools.getPokemon(target));
+		let template = Object.assign(Object.create(null), Tools.getTemplate(target));
 		if (!(Tools.toId(target) in Tools.data.pokedex)) {
 			if (!(Tools.toId(target) in Tools.data.aliases)) return this.say(`Pokemon '${target}' not found.`);
-			template = Object.assign(Object.create(null), Tools.getPokemon(Tools.data.aliases[Tools.toId(target)]));
+			template = Object.assign(Object.create(null), Tools.getTemplate(Tools.data.aliases[Tools.toId(target)]));
 		}
 		template.baseStats = Object.assign(Object.create(null), template.baseStats);
 		let stats = ['atk', 'def', 'spa', 'spd', 'spe'];
