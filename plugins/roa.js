@@ -359,11 +359,8 @@ let commands = {
 			let format = Tools.getFormat(f);
 			/**@type {string} */
 			let formatid;
-			if (!format) {
-				formatid = Tools.toId(f).startsWith('gen7') ? Tools.toId(f) : 'gen7' + Tools.toId(f);
-			} else {
-				formatid = format.id;
-			}
+			if (!format) return this.say("Please provide a valid format.");
+			formatid = format.id;
 			if (targets.length < 2) {
 				tour["addedRules"] = [];
 				tour["removedRules"] = [];

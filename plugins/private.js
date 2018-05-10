@@ -39,7 +39,7 @@ let commands = {
 		if (room instanceof Users.User || !room.isPrivate()) return;
 		let text = "OVERPAY!";
 		// @ts-ignore
-		if (!user.canPerform(room, '+')) return this.pm(user, "**" + text + "**");
+		if (!user.canPerform(room, '%')) return this.pm(user, "**" + text + "**");
 		return this.say("/wall " + text);
 	},
 	bop: function (target, room, user) {
