@@ -9,8 +9,8 @@ const cmdChar = Config.commandCharacter;
  */
 function getOMDatabase() {
 	// In case a Room object was passed:
+	if (!Storage.databases['oms']) Storage.databases['oms'] = Object.create(null);
 	let database = Storage.databases['oms'];
-	if (!database) database = Object.create(null);
 	return database;
 }
 

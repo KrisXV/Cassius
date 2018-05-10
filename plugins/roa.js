@@ -8,7 +8,7 @@ const cmdChar = Config.commandCharacter;
  */
 function getDatabase(room) {
 	if (room instanceof Rooms.Room) room = room.id;
-	if (!Storage.databases[room]) Storage.databases[room] = {};
+	if (!Storage.databases[room]) Storage.databases[room] = Object.create(null);
 	let database = Storage.databases[room];
 	if (!database.hosts) database.hosts = [];
 	if (!database.tour) database.tour = {"addedRules": [], "removedRules": [], "banlist": [], "unbanlist": []};
@@ -113,6 +113,7 @@ let commands = {
 			if (Users.self.hasRank(room, '*')) {
 				let buf = `<h4>Sample teams for ${tZeroId}:</h4>`;
 				buf += `<ul>`;
+				buf += `<li style="list-style-type:none;margin-left:0;font-weight:bold;">Sample teams for ${tZeroId}:</li>`;
 				for (const link of database[tZeroId]) {
 					buf += `<li><a href="${link}">${link}</a></li>`;
 				}
@@ -200,17 +201,18 @@ let commands = {
 				return this.say("@etour command guide: https://hastebin.com/raw/raperayisa");
 			} else {
 				return this.pmHtml(user,
-					`<h4><code>${cmdChar}etour</code>: correct syntaxes</h4><p style="margin-top:0;"><code>${cmdChar}etour</code> +<br /><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">start/forcestart</span><small> - Starts tour</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">end/forceend</span><small> - Ends tour</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">name/setname <i>[name]</i></span><small> - Renames tour</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">clearname/delname</span><small> - Clears tour's custom name</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">autostart/setautostart/as <i>[number/"off"]</i></span><small> - Sets autostart timer</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">autodq/setautodq/adq <i>[number/"off"]</i></span><small> - Sets autodq timer</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">addrule/removerule <i>[rule 1, rule 2, rule 3, ...]</i></span><small> - Adds/removes rules from tour; no need to precede removed rules w/ <code>!</code> anymore</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">ban/unban <i>[(un)ban 1, (un)ban 2, (un)ban 3, ...]</i></span><small> - (Un)bans Pokemon from tour; no need to precede w/ <code>+</code> or <code>-</code> anymore</small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;">clearrules</span><small> - Clears all custom rules <small>(Useful as a last-ditch effort)</small></small><br />` +
-					`<span style="font-size:8pt;font-weight:bold;"><i>[format]</i>&lt;, <i>[type]</i>&lt;, <i>[player cap]</i>&lt;, <i>[rounds]</i>&gt;&gt;&gt;</span></p>` +
+					`<h4><code>${cmdChar}etour</code>: correct syntaxes</h4>` +
+					`<p style="margin:0;">` +
+					`<span style="font-size:8pt;">start/forcestart</span><small> - Starts tour</small><br />` +
+					`<span style="font-size:8pt;">end/forceend</span><small> - Ends tour</small><br />` +
+					`<span style="font-size:8pt;">name/setname <i>[name]</i></span><small> - Renames tour</small><br />` +
+					`<span style="font-size:8pt;">clearname/delname</span><small> - Clears tour's custom name</small><br />` +
+					`<span style="font-size:8pt;">autostart/setautostart/as <i>[number/"off"]</i></span><small> - Sets autostart timer</small><br />` +
+					`<span style="font-size:8pt;">autodq/setautodq/adq <i>[number/"off"]</i></span><small> - Sets autodq timer</small><br />` +
+					`<span style="font-size:8pt;">addrule/removerule <i>[rule 1, rule 2, rule 3, ...]</i></span><small> - Adds/removes rules from tour; no need to precede removed rules w/ <code>!</code> anymore</small><br />` +
+					`<span style="font-size:8pt;">ban/unban <i>[(un)ban 1, (un)ban 2, (un)ban 3, ...]</i></span><small> - (Un)bans Pokemon from tour; no need to precede w/ <code>+</code> or <code>-</code> anymore</small><br />` +
+					`<span style="font-size:8pt;">clearrules</span><small> - Clears all custom rules <small>(Useful as a last-ditch effort)</small></small><br />` +
+					`<span style="font-size:8pt;">[format]&lt;, <i>[type]</i>&lt;, <i>[player cap]</i>&lt;, <i>[rounds]</i>&gt;&gt;&gt;</span></p>` +
 					`<ul><li style="margin-top:0"><strong>Examples:</strong><ul><li>${ex.join("</li><li>")}</li></ul></li>` +
 					`<li>Each argument enclosed with &lt;&gt; is optional.</li></ul>`
 				);
@@ -221,7 +223,8 @@ let commands = {
 		let samples = getDatabase(room).samples;
 		let finalRuleset = [];
 		switch (Tools.toId(targets[0])) {
-		case 'start': case 'forcestart':
+		case 'start':
+		case 'forcestart':
 			this.say(`/modnote Tournament started by ${user.id}`);
 			this.say("/tour start");
 			tour["addedRules"] = [];
@@ -230,7 +233,8 @@ let commands = {
 			tour["unbanlist"] = [];
 			Storage.exportDatabase(room.id);
 			return;
-		case 'end': case 'forceend':
+		case 'end':
+		case 'forceend':
 			this.say(`/modnote Tournament ended by ${user.id}`);
 			tour["addedRules"] = [];
 			tour["removedRules"] = [];
@@ -238,22 +242,28 @@ let commands = {
 			tour["unbanlist"] = [];
 			Storage.exportDatabase(room.id);
 			return this.say("/tour end");
-		case 'name': case 'setname':
+		case 'name':
+		case 'setname':
 			let name = targets.slice(1).join(' ').trim();
 			if (!name) return this.say(`Correct syntax: ${cmdChar}etour name/setname __[name]__`);
 			this.say(`/modnote Tournament renamed by ${user.id}`);
 			return this.say(`/tour name ${name}`);
-		case 'clearname': case 'delname':
+		case 'clearname':
+		case 'delname':
 			this.say(`/modnote Tournament name cleared by ${user.id}`);
 			return this.say(`/tour clearname`);
-		case 'autostart': case 'setautostart': case 'as':
+		case 'autostart':
+		case 'setautostart':
+		case 'as':
 			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}etour autostart/setautostart/as __[number (minutes)]__`);
 			if (Tools.toId(targets[1]) === 'off') return this.say(`/tour autostart off`);
 			let asTimer = parseInt(targets[1]);
 			if (isNaN(asTimer)) return this.say(`${targets[1]} is not a number.`);
 			this.say(`/modnote Tournament autostart set by ${user.id}`);
 			return this.say(`/tour autostart ${asTimer}`);
-		case 'autodq': case 'setautodq': case 'adq':
+		case 'autodq':
+		case 'setautodq':
+		case 'adq':
 			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}etour autodq/setautodq/adq __[number (minutes)]__`);
 			if (Tools.toId(targets[1]) === 'off') return this.say(`/tour autodq off`);
 			let dqTimer = parseInt(targets[1]);
