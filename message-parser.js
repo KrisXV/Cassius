@@ -260,7 +260,6 @@ class MessageParser {
 				room.tour = Tournaments.createTournament(room, format, splitMessage[2]);
 				if (splitMessage[3]) room.tour.playerCap = parseInt(splitMessage[3]);
 				let tourconfig = Storage.getDatabase(room.id).tourconfig;
-				let samples = Storage.getDatabase(room.id).samples;
 				let formatid = format.id;
 				if (formatid.includes('random') ||
 					formatid.includes('factory') ||
@@ -271,30 +270,6 @@ class MessageParser {
 				} else {
 					if (!tourconfig["autodq"]["normal"] || ['off', '0'].includes(tourconfig["autodq"]["normal"])) break;
 					room.say(`/tour autodq ${tourconfig["autodq"]["normal"].toString()}`);
-				}
-				if (!(formatid in samples)) break;
-				if (samples[formatid].length < 2) {
-					room.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
-				} else {
-					if (Users.self.hasRank(room, '*')) {
-						let buf = `<h4>Sample teams for ${formatid}:</h4>`;
-						buf += `<ul>`;
-						for (const link of samples[formatid]) {
-							buf += `<li><a href="${link}">${link}</a></li>`;
-						}
-						buf += `</ul>`;
-						room.say(`/addhtmlbox ${buf}`, true);
-					}
-					let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
-						/**
-						 * @param {string} team
-						 * @param {number} index
-						 */
-						(team, index) => (index + 1) + ": " + team
-					).join("\n");
-					Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-						room.say("Sample teams for " + formatid + ": " + hastebinUrl);
-					});
 				}
 				break;
 			}
