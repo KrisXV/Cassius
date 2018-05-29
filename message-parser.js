@@ -262,7 +262,16 @@ class MessageParser {
 				let tourconfig = Storage.getDatabase(room.id).tourconfig;
 				let samples = Storage.getDatabase(room.id).samples;
 				let formatid = format.id;
-				if (tourconfig["autodq"] && !['off', '0'].includes(tourconfig["autodq"].toString())) room.say(`/tour autodq ${tourconfig["autodq"].toString()}`);
+				if (formatid.includes('random') ||
+					formatid.includes('factory') ||
+					(formatid.includes('cup') && formatid.includes('hackmons')) ||
+					(formatid.includes('cup') && formatid.includes('challenge'))) {
+					if (!tourconfig["autodq"]["randoms"] || ['off', '0'].includes(tourconfig["autodq"]["randoms"])) break;
+					room.say(`/tour autodq ${tourconfig["autodq"]["randoms"].toString()}`);
+				} else {
+					if (!tourconfig["autodq"]["normal"] || ['off', '0'].includes(tourconfig["autodq"]["normal"])) break;
+					room.say(`/tour autodq ${tourconfig["autodq"]["normal"].toString()}`);
+				}
 				if (!(formatid in samples)) break;
 				if (samples[formatid].length < 2) {
 					room.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);

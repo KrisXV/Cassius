@@ -14,8 +14,8 @@ function getDatabase(room) {
 	if (!database.tour) database.tour = {"addedRules": [], "removedRules": [], "banlist": [], "unbanlist": []};
 	if (!database.tourconfig) {
 		database.tourconfig = {
-			"autostart": {"randoms": 2, "normal": 3},
-			"autodq": 3,
+			"autodq": {"randoms": 2, "normal": 3},
+			"autostart": 3,
 			/*
 			 * For later
 			 * "customtours": Object.create(null),
@@ -36,38 +36,38 @@ let commands = {
 		let targets = target.split(' ');
 		let tourconfig = getDatabase(room).tourconfig;
 		switch (Tools.toId(targets[0])) {
-		case 'autostart':
-		case 'setautostart':
-		case 'as':
-			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}econfig autostart randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
-			if (!['randoms', 'normal'].includes(Tools.toId(targets[1]))) return this.say(`Correct syntax: ${cmdChar}econfig autostart randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
-			if (!targets[2]) return this.say(`Correct syntax: ${cmdChar}econfig autostart randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+		case 'autodq':
+		case 'setautodq':
+		case 'adq':
+			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}econfig autodq randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+			if (!['randoms', 'normal'].includes(Tools.toId(targets[1]))) return this.say(`Correct syntax: ${cmdChar}econfig autodq randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+			if (!targets[2]) return this.say(`Correct syntax: ${cmdChar}econfig autodq randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
 			let tTwoId = Tools.toId(targets[2]);
 			let tTwoInt = parseInt(tTwoId);
 			if (Tools.toId(targets[1]) === 'randoms') {
 				if (tTwoId !== 'off' && isNaN(tTwoInt)) return this.say(`${targets[2]} must either be a number or the word "off".`);
 				if (tTwoId === 'off' || tTwoInt === 0) {
-					tourconfig["autostart"]["randoms"] = "off";
+					tourconfig["autodq"]["randoms"] = "off";
 					Storage.exportDatabase(room.id);
-					return this.say(`Autostart timer for random formats successfully turned off.`);
+					return this.say(`Auto DQ timer for random formats successfully turned off.`);
 				}
-				tourconfig["autostart"]["randoms"] = tTwoInt.toString();
+				tourconfig["autodq"]["randoms"] = tTwoInt.toString();
 				Storage.exportDatabase(room.id);
-				return this.say(`Autostart timer for random formats successfully set to ${tTwoInt.toString()}.`);
+				return this.say(`Auto DQ timer for random formats successfully set to ${tTwoInt.toString()}.`);
 			}
 			if (tTwoId !== 'off' && isNaN(tTwoInt)) return this.say(`${targets[2]} must either be a number or the word "off".`);
 			if (tTwoId === 'off' || tTwoInt === 0) {
-				tourconfig["autostart"]["normal"] = "off";
+				tourconfig["autodq"]["normal"] = "off";
 				Storage.exportDatabase(room.id);
-				return this.say(`Autostart timer for non-random formats successfully turned off.`);
+				return this.say(`Auto DQ timer for non-random formats successfully turned off.`);
 			}
-			tourconfig["autostart"]["normal"] = tTwoInt.toString();
+			tourconfig["autodq"]["normal"] = tTwoInt.toString();
 			Storage.exportDatabase(room.id);
 			return this.say(`Autostart timer for non-random formats successfully set to ${tTwoInt.toString()}.`);
-		case 'autodq':
-		case 'setautodq':
-		case 'adq':
-			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}econfig autodq __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+		case 'autostart':
+		case 'setautostart':
+		case 'as':
+			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}econfig autostart __[number/"off"]__ (Using 0 as a number is the same as "off")`);
 			let tOneId = Tools.toId(targets[1]);
 			let tOneInt = parseInt(tOneId);
 			if (tOneId !== 'off' && isNaN(tOneInt)) return this.say(`${targets[2]} must either be a number or the word "off".`);
@@ -466,14 +466,7 @@ let commands = {
 			Storage.exportDatabase(room.id);
 			this.say(`/modnote Tournament made by ${user.id}`);
 			this.say(tourcmd);
-			if (formatid.includes('random') ||
-				formatid.includes('factory') ||
-				(formatid.includes('cup') && formatid.includes('hackmons')) ||
-				(formatid.includes('cup') && formatid.includes('challenge'))) {
-				if (tourconfig["autostart"]["randoms"] && !['off', '0'].includes(tourconfig["autostart"]["randoms"])) this.say(`/tour autostart ${tourconfig["autostart"]["randoms"].toString()}`);
-			} else {
-				if (tourconfig["autostart"]["normal"] && !['off', '0'].includes(tourconfig["autostart"]["normal"])) this.say(`/tour autostart ${tourconfig["autostart"]["normal"].toString()}`);
-			}
+			if (tourconfig["autostart"] && !['off', '0'].includes(tourconfig["autostart"].toString())) this.say(`/tour autostart ${tourconfig["autostart"].toString()}`);
 			return;
 		}
 	},
