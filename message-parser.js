@@ -260,18 +260,33 @@ class MessageParser {
 				room.tour = Tournaments.createTournament(room, format, splitMessage[2]);
 				if (splitMessage[3]) room.tour.playerCap = parseInt(splitMessage[3]);
 				let tourconfig = Storage.getDatabase(room.id).tourconfig;
+				let samples = Storage.getDatabase(room.id).samples;
 				let formatid = format.id;
-				if (formatid.includes('random') ||
-					formatid.includes('factory') ||
-					(formatid.includes('cup') && formatid.includes('hackmons')) ||
-					(formatid.includes('cup') && formatid.includes('challenge'))) {
-					if (!tourconfig["autostart"]["randoms"] || ['off', '0'].includes(tourconfig["autostart"]["randoms"])) break;
-					room.say(`/tour autostart ${tourconfig["autostart"]["randoms"].toString()}`);
-				} else {
-					if (!tourconfig["autostart"]["normal"] || ['off', '0'].includes(tourconfig["autostart"]["normal"])) break;
-					room.say(`/tour autostart ${tourconfig["autostart"]["normal"].toString()}`);
-				}
 				if (tourconfig["autodq"] && !['off', '0'].includes(tourconfig["autodq"].toString())) room.say(`/tour autodq ${tourconfig["autodq"].toString()}`);
+				if (!(formatid in samples)) break;
+				if (samples[formatid].length < 2) {
+					room.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
+				} else {
+					if (Users.self.hasRank(room, '*')) {
+						let buf = `<h4>Sample teams for ${formatid}:</h4>`;
+						buf += `<ul>`;
+						for (const link of samples[formatid]) {
+							buf += `<li><a href="${link}">${link}</a></li>`;
+						}
+						buf += `</ul>`;
+						room.say(`/addhtmlbox ${buf}`, true);
+					}
+					let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
+						/**
+						 * @param {string} team
+						 * @param {number} index
+						 */
+						(team, index) => (index + 1) + ": " + team
+					).join("\n");
+					Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
+						room.say("Sample teams for " + formatid + ": " + hastebinUrl);
+					});
+				}
 				break;
 			}
 			case 'update': {
@@ -326,7 +341,7 @@ class MessageParser {
 				break;
 			case 'battlestart':
 				if (room.tour && !room.tour.isRoundRobin && room.tour.generator === 1 && room.tour.getRemainingPlayerCount() === 2) {
-					room.say("/wall Final battle of " + room.tour.format.name + " tournament: <<" + splitMessage[3].trim() + ">>");
+					room.say("/wall Watch the tournament finals: <<" + splitMessage[3].trim() + ">>");
 				}
 				break;
 			}

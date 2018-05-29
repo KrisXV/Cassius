@@ -293,7 +293,7 @@ let commands = {
 		}
 		if (room instanceof Users.User) return;
 		let tour = getDatabase(room).tour;
-		let samples = getDatabase(room).samples;
+		let tourconfig = getDatabase(room).tourconfig;
 		let finalRuleset = [];
 		switch (Tools.toId(targets[0])) {
 		case 'start':
@@ -466,27 +466,14 @@ let commands = {
 			Storage.exportDatabase(room.id);
 			this.say(`/modnote Tournament made by ${user.id}`);
 			this.say(tourcmd);
-			if (!(formatid in samples)) return;
-			if (samples[formatid].length < 2) return this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
-			if (Users.self.hasRank(room, '*')) {
-				let buf = `<h4>Sample teams for ${formatid}:</h4>`;
-				buf += `<ul>`;
-				for (const link of samples[formatid]) {
-					buf += `<li><a href="${link}">${link}</a></li>`;
-				}
-				buf += `</ul>`;
-				return this.sayHtml(buf);
+			if (formatid.includes('random') ||
+				formatid.includes('factory') ||
+				(formatid.includes('cup') && formatid.includes('hackmons')) ||
+				(formatid.includes('cup') && formatid.includes('challenge'))) {
+				if (tourconfig["autostart"]["randoms"] && !['off', '0'].includes(tourconfig["autostart"]["randoms"])) this.say(`/tour autostart ${tourconfig["autostart"]["randoms"].toString()}`);
+			} else {
+				if (tourconfig["autostart"]["normal"] && !['off', '0'].includes(tourconfig["autostart"]["normal"])) this.say(`/tour autostart ${tourconfig["autostart"]["normal"].toString()}`);
 			}
-			let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
-				/**
-				 * @param {string} team
-				 * @param {number} index
-				 */
-				(team, index) => (index + 1) + ": " + team
-			).join("\n");
-			Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-				this.say("Sample teams for " + formatid + ": " + hastebinUrl);
-			});
 			return;
 		}
 	},
