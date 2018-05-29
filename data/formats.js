@@ -90,17 +90,8 @@ let Formats = [
 		],
 
 		mod: 'gen7',
-		searchShow: false,
 		ruleset: ['[Gen 7] RU'],
 		banlist: ['RU', 'NUBL', 'Drought'],
-	},
-	{
-		name: "[Gen 7] NU (suspect test)",
-		threads: [`&bullet; <a href="https://www.smogon.com/forums/threads/3633969/">NU Suspect Test</a>`],
-
-		mod: 'gen7',
-		challengeShow: false,
-		ruleset: ['[Gen 7] NU'],
 	},
 	{
 		name: "[Gen 7] PU",
@@ -248,7 +239,7 @@ let Formats = [
 	{
 		name: "[Gen 7] Doubles OU",
 		threads: [
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3629155/">Doubles OU Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3634611/">Doubles OU Metagame Discussion</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3623347/">Doubles OU Viability Rankings</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3590987/">Doubles OU Sample Teams</a>`,
 		],
@@ -330,24 +321,17 @@ let Formats = [
 		requirePentagon: true,
 	},
 	{
-		name: "[Gen 7] Battle Spot Special 9",
-		threads: [`&bullet; <a href="https://www.smogon.com/forums/threads/3629823/">Battle Spot Special 9</a>`],
+		name: "[Gen 7] Battle Spot Special 10",
+		threads: [`&bullet; <a href="https://www.smogon.com/forums/threads/3634759/">Battle Spot Special 10</a>`],
 
 		mod: 'gen7',
 		gameType: 'doubles',
 		maxForcedLevel: 50,
 		teamLength: {
-			validate: [2, 6],
-			battle: 2,
+			validate: [4, 6],
+			battle: 4,
 		},
-		ruleset: ['Pokemon', 'Standard GBU'],
-		banlist: ['Eviolite', 'Focus Sash'],
-		onValidateSet: function (set, format) {
-			if (set.item) {
-				let item = this.getItem(set.item);
-				if (item.megaStone || item.zMove) return [`${set.name || set.species} has ${item.name}, which is banned in ${format.name}.`];
-			}
-		},
+		ruleset: ['Pokemon', 'Standard GBU', 'Inverse Mod'],
 	},
 	{
 		name: '[Gen 7] Metronome Battle',
@@ -447,7 +431,7 @@ let Formats = [
 
 		mod: 'gen7',
 		ruleset: ['[Gen 7] OU', 'Inverse Mod'],
-		banlist: ['Hoopa-Unbound', 'Kartana', 'Kyurem-Black', 'Serperior', 'Tapu Bulu', 'Tapu Lele'],
+		banlist: ['Diggersby', 'Hoopa-Unbound', 'Kartana', 'Kyurem-Black', 'Serperior', 'Tapu Bulu', 'Tapu Lele'],
 		unbanlist: ['Aegislash', 'Dialga', 'Giratina', 'Lucario-Mega', 'Solgaleo'],
 	},
 	{
@@ -484,7 +468,7 @@ let Formats = [
 		banlist: [
 			'Illegal', 'Unreleased', 'Arceus', 'Darkrai', 'Deoxys-Base', 'Deoxys-Attack', 'Deoxys-Defense', 'Dialga', 'Giratina', 'Groudon', 'Ho-Oh',
 			'Jirachi', 'Kangaskhan-Mega', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Lugia', 'Lunala', 'Marshadow', 'Mewtwo', 'Necrozma-Dawn-Wings',
-			'Necrozma-Dusk-Mane', 'Palkia', 'Rayquaza', 'Reshiram', 'Salamence-Mega', 'Shaymin-Sky', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zekrom',
+			'Necrozma-Dusk-Mane', 'Palkia', 'Rayquaza', 'Reshiram', 'Salamence-Mega', 'Shaymin-Sky', 'Solgaleo', 'Tapu Koko', 'Xerneas', 'Yveltal', 'Zekrom',
 			'Focus Sash', 'Flash', 'Kinesis', 'Leaf Tornado', 'Mirror Shot', 'Mud Bomb', 'Mud-Slap', 'Muddy Water', 'Night Daze', 'Octazooka', 'Perish Song', 'Sand Attack', 'Smokescreen',
 			'Chansey + Charm + Seismic Toss', 'Chansey + Charm + Psywave',
 		],
@@ -592,13 +576,6 @@ let Formats = [
 			if (source) return;
 			let types = [...new Set(target.baseMoveSlots.slice(0, 2).map(move => this.getMove(move.id).type))];
 			return Object.assign({}, template, {types: types});
-		},
-		onSwitchInPriority: 2,
-		onSwitchIn: function (pokemon) {
-			this.add('-start', pokemon, 'typechange', pokemon.types.join('/'), '[silent]');
-		},
-		onAfterMega: function (pokemon) {
-			this.add('-start', pokemon, 'typechange', pokemon.types.join('/'), '[silent]');
 		},
 	},
 	{
@@ -971,7 +948,7 @@ let Formats = [
 			'Aegislash', 'Altaria-Mega', 'Arceus', 'Blaziken', 'Charizard-Mega-X', 'Darkrai', 'Deoxys-Base', 'Deoxys-Attack', 'Dialga', 'Genesect', 'Gengar-Mega',
 			'Giratina', 'Greninja', 'Groudon', 'Ho-Oh', 'Hoopa-Unbound', 'Kangaskhan-Mega', 'Kyogre', 'Kyurem-White', 'Lucario-Mega', 'Lugia', 'Mawile-Mega', 'Metagross-Mega',
 			'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram', 'Sableye-Mega', 'Salamence-Mega', 'Shaymin-Sky', 'Slowbro-Mega', 'Talonflame', 'Xerneas', 'Yveltal', 'Zekrom',
-			'Damp Rock', 'Smooth Rock', 'Soul Dew',
+			'Shadow Tag', 'Damp Rock', 'Smooth Rock', 'Soul Dew', 'Baton Pass',
 		],
 	},
 	{

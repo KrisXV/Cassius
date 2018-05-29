@@ -749,9 +749,9 @@ class Tools {
 		return format;
 	}
 
-	/** @return {Array<string>} */
+	/** @return {string[]} */
 	getTiers() {
-		return ["Uber", "OU", "UUBL", "UU", "RUBL", "RU", "NUBL", "NU", "PUBL", "PU", "NFE", "LC Uber", "LC", "DUber", "DOU", "DBL", "DUU", "Unreleased", "Illegal"];
+		return ["Uber", "OU", "UUBL", "UU", "RUBL", "RU", "NUBL", "NU", "PUBL", "PU", "NFE", "LC Uber", "LC", "DUber", "DOU", "DBL", "DUU", "Unreleased", "Illegal", "CAP", "CAP NFE", "CAP LC"];
 	}
 
 	/**

@@ -537,19 +537,7 @@ let BattleItems = {
 			}
 		},
 		onPrimal: function (pokemon) {
-			let template = this.getTemplate('Kyogre-Primal');
-			pokemon.formeChange(template);
-			pokemon.baseTemplate = template;
-			pokemon.details = template.species + (pokemon.level === 100 ? '' : ', L' + pokemon.level) + (pokemon.gender === '' ? '' : ', ' + pokemon.gender) + (pokemon.set.shiny ? ', shiny' : '');
-			if (pokemon.illusion) {
-				pokemon.ability = ''; // Don't allow Illusion to wear off
-				this.add('-primal', pokemon.illusion);
-			} else {
-				this.add('detailschange', pokemon, pokemon.details);
-				this.add('-primal', pokemon);
-			}
-			pokemon.setAbility(template.abilities['0'], null, true);
-			pokemon.baseAbility = pokemon.ability;
+			pokemon.formeChange('Kyogre-Primal', this.effect, true);
 		},
 		onTakeItem: function (item, source) {
 			if (source.baseTemplate.baseSpecies === 'Kyogre') return false;
@@ -3493,7 +3481,8 @@ let BattleItems = {
 				this.effectData.numConsecutive = 0;
 				this.effectData.lastMove = '';
 			},
-			onBeforeMove: function (pokemon, target, move) {
+			onTryMovePriority: -2,
+			onTryMove: function (pokemon, target, move) {
 				if (!pokemon.hasItem('metronome')) {
 					pokemon.removeVolatile('metronome');
 					return;
@@ -4670,19 +4659,7 @@ let BattleItems = {
 			}
 		},
 		onPrimal: function (pokemon) {
-			let template = this.getTemplate('Groudon-Primal');
-			pokemon.formeChange(template);
-			pokemon.baseTemplate = template;
-			pokemon.details = template.species + (pokemon.level === 100 ? '' : ', L' + pokemon.level) + (pokemon.gender === '' ? '' : ', ' + pokemon.gender) + (pokemon.set.shiny ? ', shiny' : '');
-			if (pokemon.illusion) {
-				pokemon.ability = ''; // Don't allow Illusion to wear off
-				this.add('-primal', pokemon.illusion);
-			} else {
-				this.add('detailschange', pokemon, pokemon.details);
-				this.add('-primal', pokemon);
-			}
-			pokemon.setAbility(template.abilities['0'], null, true);
-			pokemon.baseAbility = pokemon.ability;
+			pokemon.formeChange('Groudon-Primal', this.effect, true);
 		},
 		onTakeItem: function (item, source) {
 			if (source.baseTemplate.baseSpecies === 'Groudon') return false;
@@ -6343,6 +6320,7 @@ let BattleItems = {
 			type: "Fighting",
 		},
 		onUpdate: function (pokemon) {
+			if (!pokemon.hp) return;
 			let moveSlot = pokemon.lastMove && pokemon.getMoveData(pokemon.lastMove.id);
 			if (moveSlot && moveSlot.pp === 0) {
 				pokemon.addVolatile('leppaberry');
@@ -6366,7 +6344,7 @@ let BattleItems = {
 			}
 			moveSlot.pp += 5;
 			if (moveSlot.pp > moveSlot.maxpp) moveSlot.pp = moveSlot.maxpp;
-			this.add('-activate', pokemon, 'item: Leppa Berry', moveSlot.move);
+			this.add('-activate', pokemon, 'item: Mystery Berry', moveSlot.move);
 			if (pokemon.item !== 'leppaberry') {
 				let foeActive = pokemon.side.foe.active;
 				let foeIsStale = false;

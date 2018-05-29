@@ -52,6 +52,22 @@ class Context {
 	}
 
 	/**
+	 * @param {string} message;
+	 */
+	sayUhtml(message) {
+		if (this.room instanceof Users.User) return this.pmUhtml(this.room, message);
+		this.room.say("/adduhtml " + message, true);
+	}
+
+	/**
+	 * @param {string} message;
+	 */
+	changeUhtml(message) {
+		if (this.room instanceof Users.User) return this.pmUhtml(this.room, message);
+		this.room.say("/changeuhtml " + message, true);
+	}
+
+	/**
 	 * @param {User | string} user
 	 * @param {string} message;
 	 */
@@ -75,6 +91,40 @@ class Context {
 			room = botRoom;
 		}
 		room.say("/pminfobox " + Tools.toId(user) + ", " + message, true);
+	}
+
+	/**
+	 * @param {User | string} user
+	 * @param {string} message;
+	 */
+	pmUhtml(user, message) {
+		let room = this.room;
+		if (room instanceof Users.User) {
+			let botRoom;
+			Users.self.rooms.forEach((rank, room) => {
+				if (rank === '*') botRoom = room;
+			});
+			if (!botRoom) return this.pm(user, message);
+			room = botRoom;
+		}
+		room.say("/pmuhtml " + Tools.toId(user) + ", " + message, true);
+	}
+
+	/**
+	 * @param {User | string} user
+	 * @param {string} message;
+	 */
+	pmChangeUhtml(user, message) {
+		let room = this.room;
+		if (room instanceof Users.User) {
+			let botRoom;
+			Users.self.rooms.forEach((rank, room) => {
+				if (rank === '*') botRoom = room;
+			});
+			if (!botRoom) return this.pm(user, message);
+			room = botRoom;
+		}
+		room.say("/pmuhtmlchange " + Tools.toId(user) + ", " + message, true);
 	}
 
 	/**
@@ -141,8 +191,8 @@ class MessageParser {
 		splitMessage.shift();
 		if (typeof Config.parseMessage === 'function') Config.parseMessage(room, messageType, splitMessage);
 		if (Plugins) {
-			for (let i = 0, len = Plugins.length; i < len; i++) {
-				if (typeof Plugins[i].parseMessage === 'function') Plugins[i].parseMessage(room, messageType, splitMessage);
+			for (const plugin of Plugins) {
+				if (typeof plugin.parseMessage === 'function') plugin.parseMessage(room, messageType, splitMessage);
 			}
 		}
 		switch (messageType) {
@@ -162,8 +212,14 @@ class MessageParser {
 			console.log('Successfully logged in');
 			if (Config.rooms) {
 				if (!(Config.rooms instanceof Array)) throw new Error("Config.rooms must be an array");
-				for (let i = 0, len = Config.rooms.length; i < len; i++) {
-					Client.send('|/join ' + Config.rooms[i]);
+				for (const roomid of Config.rooms) {
+					Client.send('|/join ' + roomid);
+				}
+			}
+			if (Config.privateRooms) {
+				if (!(Config.rooms instanceof Array)) throw new Error("Config.rooms must be an array");
+				for (const roomid of Config.privateRooms) {
+					Client.send('|/join ' + roomid);
 				}
 			}
 			if (Config.avatar) Client.send('|/avatar ' + Config.avatar);
@@ -203,6 +259,19 @@ class MessageParser {
 				if (!format) throw new Error("Unknown format used in tournament (" + splitMessage[1] + ")");
 				room.tour = Tournaments.createTournament(room, format, splitMessage[2]);
 				if (splitMessage[3]) room.tour.playerCap = parseInt(splitMessage[3]);
+				let tourconfig = Storage.getDatabase(room.id).tourconfig;
+				let formatid = format.id;
+				if (formatid.includes('random') ||
+					formatid.includes('factory') ||
+					(formatid.includes('cup') && formatid.includes('hackmons')) ||
+					(formatid.includes('cup') && formatid.includes('challenge'))) {
+					if (!tourconfig["autostart"]["randoms"] || ['off', '0'].includes(tourconfig["autostart"]["randoms"])) break;
+					room.say(`/tour autostart ${tourconfig["autostart"]["randoms"].toString()}`);
+				} else {
+					if (!tourconfig["autostart"]["normal"] || ['off', '0'].includes(tourconfig["autostart"]["normal"])) break;
+					room.say(`/tour autostart ${tourconfig["autostart"]["normal"].toString()}`);
+				}
+				if (tourconfig["autodq"] && !['off', '0'].includes(tourconfig["autodq"].toString())) room.say(`/tour autodq ${tourconfig["autodq"].toString()}`);
 				break;
 			}
 			case 'update': {
@@ -232,6 +301,12 @@ class MessageParser {
 				Object.assign(room.tour.updates, data);
 				room.tour.update();
 				room.tour.end();
+				let tour = Storage.getDatabase(room.id).tour;
+				tour["addedRules"] = [];
+				tour["removedRules"] = [];
+				tour["banlist"] = [];
+				tour["unbanlist"] = [];
+				Storage.exportDatabase(room.id);
 				break;
 			}
 			case 'forceend':

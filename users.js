@@ -61,10 +61,12 @@ class User {
 	}
 
 	/**
+	 * @param {Room | string} room
 	 * @return {boolean}
 	*/
-	isHost() {
-		let hosts = Storage.getDatabase('roa').hosts;
+	isHost(room) {
+		if (room instanceof Rooms.Room) room = room.id;
+		let hosts = Storage.getDatabase(room).hosts;
 		return hosts && hosts.includes(this.id);
 	}
 

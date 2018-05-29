@@ -12,12 +12,78 @@ function getDatabase(room) {
 	let database = Storage.databases[room];
 	if (!database.hosts) database.hosts = [];
 	if (!database.tour) database.tour = {"addedRules": [], "removedRules": [], "banlist": [], "unbanlist": []};
+	if (!database.tourconfig) {
+		database.tourconfig = {
+			"autostart": {"randoms": 2, "normal": 3},
+			"autodq": 3,
+			/*
+			 * For later
+			 * "customtours": Object.create(null),
+			 */
+		};
+	}
 	if (!database.samples) database.samples = Object.create(null);
 	return database;
 }
 
 /**@type {{[k: string]: Command | string}} */
 let commands = {
+	econfig: function (target, room, user) {
+		if (room instanceof Users.User) return;
+		if (!user.canPerform(room, '@')) return this.say("You don't have permission to do that.");
+		if (!target) return this.say(`Correct syntax: ${cmdChar}econfig autostart/autodq`);
+		target = target.trim();
+		let targets = target.split(' ');
+		let tourconfig = getDatabase(room).tourconfig;
+		switch (Tools.toId(targets[0])) {
+		case 'autostart':
+		case 'setautostart':
+		case 'as':
+			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}econfig autostart randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+			if (!['randoms', 'normal'].includes(Tools.toId(targets[1]))) return this.say(`Correct syntax: ${cmdChar}econfig autostart randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+			if (!targets[2]) return this.say(`Correct syntax: ${cmdChar}econfig autostart randoms/normal __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+			let tTwoId = Tools.toId(targets[2]);
+			let tTwoInt = parseInt(tTwoId);
+			if (Tools.toId(targets[1]) === 'randoms') {
+				if (tTwoId !== 'off' && isNaN(tTwoInt)) return this.say(`${targets[2]} must either be a number or the word "off".`);
+				if (tTwoId === 'off' || tTwoInt === 0) {
+					tourconfig["autostart"]["randoms"] = "off";
+					Storage.exportDatabase(room.id);
+					return this.say(`Autostart timer for random formats successfully turned off.`);
+				}
+				tourconfig["autostart"]["randoms"] = tTwoInt.toString();
+				Storage.exportDatabase(room.id);
+				return this.say(`Autostart timer for random formats successfully set to ${tTwoInt.toString()}.`);
+			}
+			if (tTwoId !== 'off' && isNaN(tTwoInt)) return this.say(`${targets[2]} must either be a number or the word "off".`);
+			if (tTwoId === 'off' || tTwoInt === 0) {
+				tourconfig["autostart"]["normal"] = "off";
+				Storage.exportDatabase(room.id);
+				return this.say(`Autostart timer for non-random formats successfully turned off.`);
+			}
+			tourconfig["autostart"]["normal"] = tTwoInt.toString();
+			Storage.exportDatabase(room.id);
+			return this.say(`Autostart timer for non-random formats successfully set to ${tTwoInt.toString()}.`);
+		case 'autodq':
+		case 'setautodq':
+		case 'adq':
+			if (!targets[1]) return this.say(`Correct syntax: ${cmdChar}econfig autodq __[number/"off"]__ (Using 0 as a number is the same as "off")`);
+			let tOneId = Tools.toId(targets[1]);
+			let tOneInt = parseInt(tOneId);
+			if (tOneId !== 'off' && isNaN(tOneInt)) return this.say(`${targets[2]} must either be a number or the word "off".`);
+			if (tOneId === 'off' || tOneInt === 0) {
+				tourconfig["autostart"]["normal"] = "off";
+				Storage.exportDatabase(room.id);
+				return this.say(`Auto DQ successfully turned off.`);
+			}
+			tourconfig["autostart"]["normal"] = tOneInt.toString();
+			Storage.exportDatabase(room.id);
+			return this.say(`Auto DQ successfully set to ${tOneInt.toString()}.`);
+		default:
+			return this.say(`Correct syntax: ${cmdChar}econfig autostart/autodq`);
+		}
+	},
+	addsamples: 'addsample',
 	addsample: function (target, room, user) {
 		if (room instanceof Users.User) return this.say("This can only be used in rooms.");
 		if (!user.canPerform(room, '%')) return this.say("You don't have permission to do that.");
@@ -39,6 +105,9 @@ let commands = {
 		Storage.exportDatabase(room.id);
 		return this.say("Sample team added.");
 	},
+	deletesamples: 'removesample',
+	deletesample: 'removesample',
+	removesamples: 'removesample',
 	removesample: function (target, room, user) {
 		if (room instanceof Users.User) return this.say("This can only be used in rooms.");
 		if (!user.canPerform(room, '%')) return this.say("You don't have permission to do that.");
@@ -61,6 +130,7 @@ let commands = {
 		Storage.exportDatabase(room.id);
 		return this.say("Sample team removed.");
 	},
+	listsample: 'listsamples',
 	listsamples: function (target, room, user) {
 		if (room instanceof Users.User) return this.say("This can only be used in rooms.");
 		if (!user.canPerform(room, '%')) return this.say("You don't have permission to do that.");
@@ -98,81 +168,81 @@ let commands = {
 			});
 		}
 	},
+	sample: 'samples',
 	samples: function (target, room, user) {
 		if (room instanceof Users.User) return this.say("This can only be used in rooms.");
-		if (!user.canPerform(room, '%')) return this.say("You don't have permission to do that.");
-		if (!target) return this.say(`Correct syntax: ${cmdChar}listsamples <__[tier]__>`);
+		if (!target) {
+			if (user.canPerform(room, '+')) return this.say(`Correct syntax: ${cmdChar}samples <__[tier]__>`);
+			return this.pm(user, `Correct syntax: ${cmdChar}samples <__[tier]__>`);
+		}
 		target = target.trim();
-		let database = getDatabase(room.id).samples;
+		let database = getDatabase(room).samples;
 		let tZeroId = Tools.toId(target);
 		if (!(tZeroId in database)) return this.say(`The format ${target.trim()} wasn't found.`);
 		if (!database[tZeroId].length) return this.say(`There are currently no sample teams for the format ${tZeroId} in the room ${room.id}.`);
-		if (database[tZeroId].length < 2) {
-			return this.say(`Sample teams for __${tZeroId}__: ${database[tZeroId][0]}`);
-		} else {
-			if (Users.self.hasRank(room, '*')) {
-				let buf = `<h4>Sample teams for ${tZeroId}:</h4>`;
-				buf += `<ul>`;
-				buf += `<li style="list-style-type:none;margin-left:0;font-weight:bold;">Sample teams for ${tZeroId}:</li>`;
-				for (const link of database[tZeroId]) {
-					buf += `<li><a href="${link}">${link}</a></li>`;
-				}
-				buf += `</ul>`;
-				return this.sayHtml(buf);
-			} else {
-				let prettifiedTeamList = "Sample teams for " + tZeroId + ":\n\n" + database[tZeroId].map(
-					/**
-					 * @param {string} team
-					 * @param {number} index
-					 */
-					(team, index) => (index + 1) + ": " + team
-				).join("\n");
-				Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-					this.say("Sample teams for " + tZeroId + ": " + hastebinUrl);
-				});
+		if (database[tZeroId].length < 2) return this.say(`Sample teams for __${tZeroId}__: ${database[tZeroId][0]}`);
+		if (Users.self.hasRank(room, '*')) {
+			let buf = `<h4>Sample teams for ${tZeroId}:</h4>`;
+			buf += `<ul>`;
+			for (const link of database[tZeroId]) {
+				buf += `<li><a href="${link}">${link}</a></li>`;
 			}
+			buf += `</ul>`;
+			return user.canPerform(room, '+') ? this.sayHtml(buf) : this.pmHtml(user, buf);
 		}
+		let prettifiedTeamList = "Sample teams for " + tZeroId + ":\n\n" + database[tZeroId].map(
+			/**
+			 * @param {string} team
+			 * @param {number} index
+			 */
+			(team, index) => (index + 1) + ": " + team
+		).join("\n");
+		Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
+			if (user.canPerform(room, '+')) return this.say("Sample teams for " + tZeroId + ": " + hastebinUrl);
+			return this.pm(user, "Sample teams for " + tZeroId + ": " + hastebinUrl);
+		});
 	},
 	addhost: 'host',
 	host: function (target, room, user) {
-		if (!user.canPerform('ruinsofalph', '%')) return this.say("You don't have permission to do that.");
+		if (room instanceof Users.User) return this.say("This command can only be used in rooms.");
+		if (!user.canPerform(room, '%')) return this.say("You don't have permission to do that.");
 		if (!target) return this.say(`Correct syntax: ${cmdChar}host __[user]__`);
 		target = target.trim();
-		let hosts = getDatabase('roa').hosts;
+		let hosts = getDatabase(room.id).hosts;
 		if (target.length > 18) return this.say("Please provide a real username.");
 		let index = hosts.findIndex(/**@param {string} host */ host => Tools.toId(host) === Tools.toId(target));
 		if (index >= 0) return this.say("That user is already a host.");
 		hosts.push(Tools.toId(target));
-		Storage.exportDatabase('roa');
+		Storage.exportDatabase(room.id);
 		return this.say(`User ${target} successfully added as a host.`);
 	},
 	dehost: 'unhost',
 	unhost: function (target, room, user) {
-		// @ts-ignore
-		if (!user.canPerform('ruinsofalph', '%')) return this.say("You don't have permission to do that.");
-		if (!target) return this.say(`Correct syntax: ${cmdChar}host __[user]__`);
+		if (room instanceof Users.User) return this.say("This command can only be used in rooms.");
+		if (!user.canPerform(room, '%')) return this.say("You don't have permission to do that.");
+		if (!target) return this.say(`Correct syntax: ${cmdChar}dehost __[user]__`);
 		target = target.trim();
-		let hosts = getDatabase('roa').hosts;
+		let hosts = getDatabase(room.id).hosts;
 		if (target.length > 18) return this.say("Please provide a real username.");
 		let index = hosts.findIndex(/**@param {string} host */ host => Tools.toId(host) === Tools.toId(target));
 		if (index < 0) return this.say("That user is not a host.");
 		hosts.splice(index, 1);
-		Storage.exportDatabase('roa');
+		Storage.exportDatabase(room.id);
 		return this.say(`User ${target} successfully dehosted.`);
 	},
 	clearhosts: function (target, room, user) {
-		// @ts-ignore
-		if (!user.canPerform('ruinsofalph', '@')) return this.say("You don't have permission to do that.");
+		if (room instanceof Users.User) return this.say("This command can only be used in rooms.");
+		if (!user.canPerform(room, '@')) return this.say("You don't have permission to do that.");
 		target = target.trim();
-		getDatabase('roa').hosts = [];
-		Storage.exportDatabase('roa');
+		getDatabase(room.id).hosts = [];
+		Storage.exportDatabase(room.id);
 		return this.say(`Host list successfully cleared.`);
 	},
 	hosts: 'viewhosts',
 	viewhosts: function (target, room, user) {
-		// @ts-ignore
-		if (!user.canPerform('ruinsofalph', '@')) return this.say("You don't have permission to do that.");
-		let hosts = getDatabase('roa').hosts;
+		if (room instanceof Users.User) return this.say("This command can only be used in rooms.");
+		if (!user.canPerform(room, '%')) return this.say("You don't have permission to do that.");
+		let hosts = getDatabase(room.id).hosts;
 		if (!hosts.length) return this.say("There are currently no hosts.");
 		let prettifiedHostList = "Hosts for Ruins of Alph:\n\n" + hosts.map(
 			/**
@@ -187,7 +257,7 @@ let commands = {
 	},
 	etour: function (target, room, user) {
 		// @ts-ignore
-		if (!user.canPerform(room, '%') && !user.isHost()) return;
+		if (!user.canPerform(room, '%') && !user.isHost(room)) return;
 		let targets = target.split(' ');
 		if (!targets[0]) {
 			let ex = [
@@ -196,9 +266,9 @@ let commands = {
 				`gen1ou, elimination, 64`,
 				`gen1ou, elimination, 64, 2`,
 			];
-			// @ts-ignore
+			if (room instanceof Users.User) return this.pm(user, `${cmdChar}etour command guide: https://hastebin.com/raw/iyapadihof`);
 			if (!Users.self.hasRank(room, '*')) {
-				return this.say("@etour command guide: https://hastebin.com/raw/raperayisa");
+				return this.say(`${cmdChar}etour command guide: https://hastebin.com/raw/iyapadihof`);
 			} else {
 				return this.pmHtml(user,
 					`<h4><code>${cmdChar}etour</code>: correct syntaxes</h4>` +
@@ -211,7 +281,10 @@ let commands = {
 					`<span style="font-size:8pt;">autodq/setautodq/adq <i>[number/"off"]</i></span><small> - Sets autodq timer</small><br />` +
 					`<span style="font-size:8pt;">addrule/removerule <i>[rule 1, rule 2, rule 3, ...]</i></span><small> - Adds/removes rules from tour; no need to precede removed rules w/ <code>!</code> anymore</small><br />` +
 					`<span style="font-size:8pt;">ban/unban <i>[(un)ban 1, (un)ban 2, (un)ban 3, ...]</i></span><small> - (Un)bans Pokemon from tour; no need to precede w/ <code>+</code> or <code>-</code> anymore</small><br />` +
-					`<span style="font-size:8pt;">clearrules</span><small> - Clears all custom rules <small>(Useful as a last-ditch effort)</small></small><br />` +
+					`<span style="font-size:8pt;">clearrules</span><small> - Clears all custom rules (Useful as a last-ditch effort)</small><br />` +
+					`<span style="font-size:8pt;">viewrules</span><small> - Command for hosts to display rules</small></small><br />` +
+					`<span style="font-size:8pt;">timer/forcetimer <i>[on/off]</i></span><small> - Toggles the forced timer (default off)</small><br />` +
+					`<span style="font-size:8pt;">scouting/scout <i>[on/off]</i></span><small> - Allows/disallows scouting (default allowed)</small><br />` +
 					`<span style="font-size:8pt;">[format]&lt;, <i>[type]</i>&lt;, <i>[player cap]</i>&lt;, <i>[rounds]</i>&gt;&gt;&gt;</span></p>` +
 					`<ul><li style="margin-top:0"><strong>Examples:</strong><ul><li>${ex.join("</li><li>")}</li></ul></li>` +
 					`<li>Each argument enclosed with &lt;&gt; is optional.</li></ul>`
@@ -353,6 +426,18 @@ let commands = {
 			this.say("/tour clearrules");
 			Storage.exportDatabase(room.id);
 			return this.say("Custom rules cleared.");
+		case 'viewrules':
+			return this.say("!tour viewrules");
+		case 'timer':
+		case 'forcetimer':
+			if (!targets[1] || !["on", "off"].includes(Tools.toId(targets[1]))) return this.say(`Correct syntax: ${cmdChar}etour timer/forcetimer [on/off]`);
+			if (Tools.toId(targets[1]) === "on") return this.say("/tour forcetimer on");
+			return this.say("/tour forcetimer off");
+		case 'scout':
+		case 'scouting':
+			if (!targets[1] || !["on", "off"].includes(Tools.toId(targets[1]))) return this.say(`Correct syntax: ${cmdChar}etour scout/scouting [on/off]`);
+			if (Tools.toId(targets[1]) === "on") return this.say("/tour scouting allow");
+			return this.say("/tour forcetimer disallow");
 		default:
 			targets = target.split(',');
 			let f = targets[0];
@@ -361,159 +446,48 @@ let commands = {
 			let formatid;
 			if (!format) return this.say("Please provide a valid format.");
 			formatid = format.id;
-			if (targets.length < 2) {
-				tour["addedRules"] = [];
-				tour["removedRules"] = [];
-				tour["banlist"] = [];
-				tour["unbanlist"] = [];
-				Storage.exportDatabase(room.id);
-				this.say(`/modnote Tournament made by ${user.id}`);
-				this.say(`/tour new ${formatid}, elimination`);
-				if (formatid in samples) {
-					if (samples[formatid].length < 2) {
-						this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
-					} else {
-						if (Users.self.hasRank(room, '*')) {
-							let buf = `<h4>Sample teams for ${formatid}:</h4>`;
-							buf += `<ul>`;
-							for (const link of samples[formatid]) {
-								buf += `<li><a href="${link}">${link}</a></li>`;
-							}
-							buf += `</ul>`;
-							this.sayHtml(buf);
-						} else {
-							let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
-								/**
-								 * @param {string} team
-								 * @param {number} index
-								 */
-								(team, index) => (index + 1) + ": " + team
-							).join("\n");
-							Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-								this.say("Sample teams for " + formatid + ": " + hastebinUrl);
-							});
-						}
-					}
-				}
-				return;
-			}
+			let tourcmd = `/tour new ${formatid}, elimination`;
 			if (targets[1]) {
-				if (!['elimination', 'roundrobin'].includes(Tools.toId(targets[1]))) return this.say(`${targets[1]} is not a valid tournament type.`);
-				if (targets.length < 3) {
-					tour["addedRules"] = [];
-					tour["removedRules"] = [];
-					tour["banlist"] = [];
-					tour["unbanlist"] = [];
-					Storage.exportDatabase(room.id);
-					this.say(`/modnote Tournament made by ${user.id}`);
-					this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}`);
-					if (formatid in samples) {
-						if (samples[formatid].length < 2) {
-							this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
-						} else {
-							if (Users.self.hasRank(room, '*')) {
-								let buf = `<h4>Sample teams for ${formatid}:</h4>`;
-								buf += `<ul>`;
-								for (const link of samples[formatid]) {
-									buf += `<li><a href="${link}">${link}</a></li>`;
-								}
-								buf += `</ul>`;
-								this.sayHtml(buf);
-							} else {
-								let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
-									/**
-									 * @param {string} team
-									 * @param {number} index
-									 */
-									(team, index) => (index + 1) + ": " + team
-								).join("\n");
-								Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-									this.say("Sample teams for " + formatid + ": " + hastebinUrl);
-								});
-							}
-						}
-					}
-					return;
-				}
+				if (!['elimination', 'elim', 'roundrobin'].includes(Tools.toId(targets[1]))) return this.say(`${targets[1]} is not a valid tournament type.`);
+				tourcmd = `/tour new ${formatid}, ${Tools.toId(targets[1])}`;
 			}
 			if (targets[2]) {
 				if (isNaN(parseInt(Tools.toId(targets[2])))) return this.say(`${targets[2]} is not a number. (the third argument must be a number because it sets the tournament's player cap)`);
-				if (targets.length < 4) {
-					tour["addedRules"] = [];
-					tour["removedRules"] = [];
-					tour["banlist"] = [];
-					tour["unbanlist"] = [];
-					Storage.exportDatabase(room.id);
-					this.say(`/modnote Tournament made by ${user.id}`);
-					this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}`);
-					if (formatid in samples) {
-						if (samples[formatid].length < 2) {
-							this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
-						} else {
-							if (Users.self.hasRank(room, '*')) {
-								let buf = `<h4>Sample teams for ${formatid}:</h4>`;
-								buf += `<ul>`;
-								for (const link of samples[formatid]) {
-									buf += `<li><a href="${link}">${link}</a></li>`;
-								}
-								buf += `</ul>`;
-								this.sayHtml(buf);
-							} else {
-								let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
-									/**
-									 * @param {string} team
-									 * @param {number} index
-									 */
-									(team, index) => (index + 1) + ": " + team
-								).join("\n");
-								Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-									this.say("Sample teams for " + formatid + ": " + hastebinUrl);
-								});
-							}
-						}
-					}
-					return;
-				}
+				tourcmd = `/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}`;
 			}
 			if (targets[3]) {
 				if (isNaN(parseInt(Tools.toId(targets[3])))) return this.say(`${targets[3]} is not a number. (the fourth argument must be a number because it sets the tournament's rounds)`);
-				if (targets.length < 5) {
-					tour["addedRules"] = [];
-					tour["removedRules"] = [];
-					tour["banlist"] = [];
-					tour["unbanlist"] = [];
-					Storage.exportDatabase(room.id);
-					this.say(`/modnote Tournament made by ${user.id}`);
-					this.say(`/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}, ${parseInt(Tools.toId(targets[3]))}`);
-					if (formatid in samples) {
-						if (samples[formatid].length < 2) {
-							this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
-						} else {
-							if (Users.self.hasRank(room, '*')) {
-								let buf = `<h4>Sample teams for ${formatid}:</h4>`;
-								buf += `<ul>`;
-								for (const link of samples[formatid]) {
-									buf += `<li><a href="${link}">${link}</a></li>`;
-								}
-								buf += `</ul>`;
-								this.sayHtml(buf);
-							} else {
-								let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
-									/**
-									 * @param {string} team
-									 * @param {number} index
-									 */
-									(team, index) => (index + 1) + ": " + team
-								).join("\n");
-								Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-									this.say("Sample teams for " + formatid + ": " + hastebinUrl);
-								});
-							}
-						}
-					}
-					return;
-				}
+				tourcmd = `/tour new ${formatid}, ${Tools.toId(targets[1])}, ${parseInt(Tools.toId(targets[2]))}, ${parseInt(Tools.toId(targets[3]))}`;
 			}
+			tour["addedRules"] = [];
+			tour["removedRules"] = [];
+			tour["banlist"] = [];
+			tour["unbanlist"] = [];
+			Storage.exportDatabase(room.id);
+			this.say(`/modnote Tournament made by ${user.id}`);
+			this.say(tourcmd);
+			if (!(formatid in samples)) return;
+			if (samples[formatid].length < 2) return this.say(`Sample teams for __${formatid}__: ${samples[formatid][0]}`);
+			if (Users.self.hasRank(room, '*')) {
+				let buf = `<h4>Sample teams for ${formatid}:</h4>`;
+				buf += `<ul>`;
+				for (const link of samples[formatid]) {
+					buf += `<li><a href="${link}">${link}</a></li>`;
+				}
+				buf += `</ul>`;
+				return this.sayHtml(buf);
+			}
+			let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
+				/**
+				 * @param {string} team
+				 * @param {number} index
+				 */
+				(team, index) => (index + 1) + ": " + team
+			).join("\n");
+			Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
+				this.say("Sample teams for " + formatid + ": " + hastebinUrl);
+			});
+			return;
 		}
 	},
 };

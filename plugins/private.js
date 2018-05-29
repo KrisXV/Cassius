@@ -40,7 +40,7 @@ let commands = {
 		let text = "OVERPAY!";
 		// @ts-ignore
 		if (!user.canPerform(room, '%')) return this.pm(user, "**" + text + "**");
-		return this.say("/wall " + text);
+		return this.say(`${Users.self.hasRank(room, '%') ? '/wall ' : '**'}${text}${Users.self.hasRank(room, '%') ? '' : '**'}`);
 	},
 	bop: function (target, room, user) {
 		if (room instanceof Users.User) return this.say("This command only works in rooms.");
@@ -65,7 +65,7 @@ let commands = {
 		if (index >= 0) return this.say("That roast already exists.");
 		if (!target.includes('{user}')) return this.say(`Your roast doesn't have the filler __{user}__ in it. (__{user}__ is used to locate where the target username goes when you use ${cmdChar}roast __{user}__)`);
 		if (['/', '!'].includes(target[0])) return this.say("Roasts aren't allowed to start with slashes.");
-		for (const letter of target.replace(' ', '')) {
+		for (const letter of target.replace(/ /, '')) {
 			if (target[target.indexOf(letter) + 1] === letter &&
 				target[target.indexOf(letter) + 2] === letter &&
 				target[target.indexOf(letter) + 3] === letter) {
