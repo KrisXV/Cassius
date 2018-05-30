@@ -36,6 +36,16 @@ let commands = {
 		let targets = target.split(' ');
 		let tourconfig = getDatabase(room).tourconfig;
 		switch (Tools.toId(targets[0])) {
+		case 'reset':
+			getDatabase(room).tourconfig = {
+				"autodq": {
+					"randoms": 2,
+					"normal": 3,
+				},
+				"autostart": 3,
+			};
+			Storage.exportDatabase(room.id);
+			return this.say("``etour`` configuration reset.");
 		case 'autodq':
 		case 'setautodq':
 		case 'adq':
@@ -63,7 +73,7 @@ let commands = {
 			}
 			tourconfig["autodq"]["normal"] = tTwoInt.toString();
 			Storage.exportDatabase(room.id);
-			return this.say(`Autostart timer for non-random formats successfully set to ${tTwoInt.toString()}.`);
+			return this.say(`Auto DQ timer for non-random formats successfully set to ${tTwoInt.toString()}.`);
 		case 'autostart':
 		case 'setautostart':
 		case 'as':
@@ -72,13 +82,13 @@ let commands = {
 			let tOneInt = parseInt(tOneId);
 			if (tOneId !== 'off' && isNaN(tOneInt)) return this.say(`${targets[2]} must either be a number or the word "off".`);
 			if (tOneId === 'off' || tOneInt === 0) {
-				tourconfig["autostart"]["normal"] = "off";
+				tourconfig["autostart"] = "off";
 				Storage.exportDatabase(room.id);
-				return this.say(`Auto DQ successfully turned off.`);
+				return this.say(`Autostart successfully turned off.`);
 			}
-			tourconfig["autostart"]["normal"] = tOneInt.toString();
+			tourconfig["autostart"] = tOneInt.toString();
 			Storage.exportDatabase(room.id);
-			return this.say(`Auto DQ successfully set to ${tOneInt.toString()}.`);
+			return this.say(`Autostart successfully set to ${tOneInt.toString()}.`);
 		default:
 			return this.say(`Correct syntax: ${cmdChar}econfig autostart/autodq`);
 		}
