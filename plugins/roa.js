@@ -489,16 +489,6 @@ let commands = {
 				buf += `</ul>`;
 				this.sayHtml(buf);
 			}
-			let prettifiedTeamList = "Sample teams for " + formatid + ":\n\n" + samples[formatid].map(
-				/**
-				 * @param {string} team
-				 * @param {number} index
-				 */
-				(team, index) => (index + 1) + ": " + team
-			).join("\n");
-			Tools.uploadToHastebin(prettifiedTeamList, /**@param {string} hastebinUrl */ hastebinUrl => {
-				this.say("Sample teams for " + formatid + ": " + hastebinUrl);
-			});
 			return;
 		}
 	},
